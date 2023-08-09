@@ -1,4 +1,4 @@
-# Cherry: A Distributed Task-Aware Shuffle Service for Serverless Analytics
+# EEA Python Script for Data Extraction and Processing
 
 [![GitHub license](https://img.shields.io/badge/license-GNU-blue.svg)](https://raw.githubusercontent.com/nikoshet/spark-cherry-shuffle-service/master/LICENSE)
 
