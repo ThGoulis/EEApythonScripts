@@ -70,19 +70,9 @@ To simplify the deployment of a Spark Cluster and a Spark workload as a Kubernet
 ## Available Workloads <a name = "available_workloads"></a>
 
 ## Deployment <a name = "deployment"></a>
-To deploy a Spark Cluster with differently configured workloads, you need to deploy the implemented Spark Metadata Service, the Spark Master, Workers, Cherry shuffle services and finally the Driver job. Example command:
+
 ```
-kubectl delete deploy spark-metadata-service spark-worker spark-cherry-shuffle-service -n spark \
-&& kubectl delete job spark-driver -n spark \
-&& sleep 1m \
-&& kubectl create -f ./kubernetes/spark-metadata-service/spark-metadata-service-deployment.yaml --namespace=spark \
-&& sleep 1m \
-&& kubectl create -f ./kubernetes/spark-cherry-shuffle-service/spark-cherry-shuffle-service-deployment.yaml --namespace=spark \
-&& kubectl create -f ./kubernetes/spark-worker/spark-worker-deployment.yaml --namespace=spark \
-&& kubectl scale deployments/spark-worker --replicas=10 --namespace=spark \
-&& kubectl scale deployments/spark-cherry-shuffle-service --replicas=10 --namespace=spark \
-&& sleep 1m \
-&& kubectl create -f ./kubernetes/spark-driver/spark-driver-job.yaml --namespace=spark
+
 ```
 
 Example commands with flags for the `spark-driver.sh` script to execute different workloads (need to be modified in the `/kubernetes/spark-driver/spark-driver-job.yaml` file):
