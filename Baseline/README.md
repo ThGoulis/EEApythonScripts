@@ -1,9 +1,8 @@
-Outliers Scripts
+Baseline Scripts
 =
 Prerequisites:
 -
 - Python 3.9
-- Pandas 1.5.2
 - Python-csv 0.0.13
 - Sqlite 3
 ```
