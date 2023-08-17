@@ -129,7 +129,6 @@ def Surface_water_bodies_Quality_element_exemptions_Type(conn, countryCode, cYea
         cur = conn.cursor()
         for country in countryCode:
             for values in swEcologicalExemptionTypeGroup:
-                write.writerows(data)
                 data = cur.execute('select countryCode, cYear, qeEcologicalExemptionTypeGroup, qeEcologicalExemptionType, count(Distinct euSurfaceWaterBodyCode), '
                                 'round(count(distinct euSurfaceWaterBodyCode) *100.0 / ( '
                                 'select count(distinct euSurfaceWaterBodyCode) '
@@ -144,6 +143,7 @@ def Surface_water_bodies_Quality_element_exemptions_Type(conn, countryCode, cYea
                                         'AND countryCode = ? '
                                         'AND qeEcologicalExemptionTypeGroup = ? '
                                 'group by qeEcologicalExemptionType ', (cYear, country, values, cYear, country, values)).fetchall()
+                write.writerows(data)
                 
 
 def SWB_Chemical_exemption_type(conn, countryCode, cYear, working_directory):
@@ -817,7 +817,7 @@ def swChemicalStatusExpectedGoodIn2015(conn, countryCode, cYear, working_directo
 
 def swChemicalStatusExpectedAchievementDate(conn, countryCode, cYear, working_directory):
     with open(
-            working_directory + '47swChemicalStatusExpectedAchievementDate2016.csv',
+            working_directory + '47.swChemicalStatusExpectedAchievementDate2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Chemical Status Expected Achievement Date", "Number", "Number(%)"]
         write = csv.writer(f)
@@ -1186,7 +1186,7 @@ def SOW_GWB_gwQuantitativeReasonsForFailure_Table(conn, countryCode, cYear, work
 
 def SOW_GWB_gwChemicalReasonsForFailure_Table(conn, countryCode, cYear, working_directory):
     with open(
-            working_directory + 'SOW_GWB_gwChemicalReasonsForFailure_Table2016.csv',
+            working_directory + '26.SOW_GWB_gwChemicalReasonsForFailure_Table2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Quantitative Status Value", "Quantitative Reasons For Failure", "Area", "Area(%)"]
         write = csv.writer(f)
@@ -1201,7 +1201,7 @@ def SOW_GWB_gwChemicalReasonsForFailure_Table(conn, countryCode, cYear, working_
                 'where countryCode = ? and cYear == ?' 
                 'and gwAtRiskChemical <> "Annex 0" and gwAtRiskChemical <> "unpopulated" '
                 'and gwAtRiskChemical = ? ', (country, cYear, types)).fetchall()
-                write.writerows(data)
+            write.writerows(data)
                 
 
 def gwChemicalStatusValue_Table(conn, countryCode, cYear, working_directory):
@@ -1725,7 +1725,6 @@ def gwSignificantPressureType2016(conn, countryCode, cYear, working_directory):
         write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
-        print("we are here")
         gwSignificantPressureTypeGroup = cur.execute('''select distinct gwSignificantPressureTypeGroup
                                             from SOW_GWB_gwSignificantPressureType
                                             where cYear = 2016 and gwSignificantPressureTypeGroup <> "Unpopulated"''').fetchall()
