@@ -29,5 +29,5 @@ For functions.py:
 
 Input data
 -
-- Check the CsvToSQLDatabase folder
+- Find the database at: https://www.eea.europa.eu/data-and-maps/data/wise-wfd-4
 
