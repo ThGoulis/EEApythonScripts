@@ -1,4 +1,7 @@
+Outliers Scripts
+=
 Prerequisites:
+-
 - Python 3.9
 - Pandas 1.5.2
 - Python-csv 0.0.13
@@ -7,7 +10,7 @@ pip install pandas
 pip install python-csv
 ```
 Execution instructions:
-
+-
 For main.py:<br>
 - Import sqlite3, pandas, csv and functions libraries.
 
@@ -27,4 +30,5 @@ For functions.py:
 - Change the name of country = ['AT'] with the name of country how you add at main.py.
 
 Input data:
+-
 - Check the CsvToSQLDatabase folder
