@@ -1,7 +1,7 @@
 For main.py:<br>
-Import sqlite3, pandas, csv and functions libraries.
+- Import sqlite3, pandas, csv and functions libraries.
 
-To run this script you need to create a sqlite database with the outputs files.
+- To run this script you need to create a sqlite database with the outputs files.
 
 Create a folder for working_directory = "C:\path\to\directory\"<br>
 Create a folder for Excel_directory = "C:\path\to\directory\"<br>
