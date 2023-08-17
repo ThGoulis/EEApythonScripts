@@ -3,8 +3,8 @@ For main.py:<br>
 
 - To run this script you need to create a sqlite database with the outputs files.
 
-- Create a folder for Excel_directory = "C:\path\to\directory\"<br>
-- Specify the output folder final_Excel = "C:\path\to\directory\"<br>
+- Create/Specify a folder for Excel_directory = "C:\path\to\directory\"<br>
+- Create/Specify the output folder final_Excel = "C:\path\to\directory\"<br>
 - Add the directory of the sqlite database at SqlDatabase = r"C:\path\to\database/database.sql"<br>
 - At variable 'countryCode' you need to change the value with the country code with one of adove to exctract the data from this country.<br>
 
