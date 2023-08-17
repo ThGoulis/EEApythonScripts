@@ -1,12 +1,16 @@
 Prerequisites:
 - Python 3.9
-
-For main.py:<br>
-- Import sqlite3, pandas, csv and functions libraries.
+- Pandas 1.5.2
+- Python-csv 0.0.13
 ```
 pip install pandas
 pip install python-csv
 ```
+Execution instructions:
+
+For main.py:<br>
+- Import sqlite3, pandas, csv and functions libraries.
+
 - To run this script you need to create a sqlite database with the outputs files.
 
 - Create/Specify a folder for Excel_directory = "C:\path\to\directory\"<br>
