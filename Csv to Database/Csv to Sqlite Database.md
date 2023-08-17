@@ -11,12 +11,10 @@ pip install python-csv
     
 Execution instructions:
 =
-
 For main.py:<br>
-- Import sqlite3, csv, glob and os libraries.
 - Change the path of database: `conn = sqlite3.connect('C:/path/to/database/nameOfDatabase.sqlite')`<br>
 - Change the path of csv files: `do_directory('C:/path/to/extracted/csv/files/', conn)`
 
 Input data:
--
+=
 - Use the extracted data from Baseline and Screening scripts.
