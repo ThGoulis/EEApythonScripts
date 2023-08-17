@@ -5,8 +5,6 @@ For main.py:<br>
 - Import sqlite3, pandas, csv and functions libraries.
 ```
 pip install pandas
-```
-```
 pip install python-csv
 ```
 - To run this script you need to create a sqlite database with the outputs files.
@@ -23,3 +21,6 @@ extention = '.csv'
 For functions.py:
 
 - Change the name of country = ['AT'] with the name of country how you add at main.py.
+
+Input data:
+- Check the CsvToSQLDatabase folder
