@@ -1,4 +1,4 @@
-Baseline Scripts
+Baseline
 =
 Prerequisites:
 -
@@ -18,13 +18,12 @@ For main.py:
   you specify the directory at:<br>
   `database = r"C:\path\to\directory/nameOfDatabase.sqlite"`
   
-- Change the `countryCode = ["NL"]` with the code of country. You can also use the the array adove to exctract multiple countries.
-- The script create a folder with the name of countryCode.
-`working_directory = 'C:\path\to\directory\' + country + '\\'`
+- Change the `countryCode = ["NL"]` with the code of country how you want to extract data.
+- Specify the path of folder: `working_directory = 'C:\path\to\directory\' + country + '\\'` The countryCode will get the name of folder.
   
 For functions.py:
-
-- Change the name of `country = ['AT']` with the name of country how you add at main.py.
+- Need to install csv library to execute the fuctions.
+  
 
 Input data
 -
