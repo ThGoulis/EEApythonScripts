@@ -19,7 +19,7 @@ For main.py:<br>
 
 - Create/Specify a folder for Excel_directory = "C:\path\to\directory\"<br>
 - Create/Specify the output folder final_Excel = "C:\path\to\directory\"<br>
-- Add the directory of the sqlite database at SqlDatabase = r"C:\path\to\database/database.sql"<br>
+- Add the directory of the sqlite database at SqlDatabase = r"C:\path\to\database/database.sqlite"<br>
 - At variable 'countryCode' you need to change the value with the country code with one of adove to exctract the data from this country.<br>
 
 - Also you can change or leave it as it is the variable 'file' to generate the output file name.<br>
