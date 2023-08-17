@@ -3,7 +3,11 @@ Prerequisites:
 
 For main.py:<br>
 - Import sqlite3, pandas, csv and functions libraries.
-
+```
+pip install sqlite3
+pip install pandas
+pip install csv
+```
 - To run this script you need to create a sqlite database with the outputs files.
 
 - Create/Specify a folder for Excel_directory = "C:\path\to\directory\"<br>
