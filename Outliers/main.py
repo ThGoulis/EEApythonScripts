@@ -1,12 +1,7 @@
-import os
 import sqlite3
 from sqlite3 import Error
-import openpyxl
-from openpyxl.styles import PatternFill
-import csvs_to_sqlite as csvsql
 import pandas as pd
 import csv
-import re
 
 import functions
 
