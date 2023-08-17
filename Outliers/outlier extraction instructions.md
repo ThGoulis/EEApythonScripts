@@ -1,3 +1,6 @@
+Prerequisites:
+- Python 3.9
+
 For main.py:<br>
 - Import sqlite3, pandas, csv and functions libraries.
 
