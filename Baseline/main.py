@@ -20,11 +20,10 @@ def main():
     #                "LT", "LU", "LV", "MT", "NL", "NO", "PL", "PT",
     #                "RO", "SE", "SI", "SK", "UK"]
 
-    countryCode = ["NL"]
+    countryCode = ["FR"]
 
     country = ' '.join(countryCode)
     working_directory = 'C:\\Users\\Theofilos Goulis\\Documents\\BaselineAllData\\' + country + '\\'
-
 
     if not os.path.isdir(working_directory):
         os.makedirs(working_directory)
@@ -163,6 +162,7 @@ def main():
     print('Execution time:', elapsed_time, 'seconds')
 
     print("Connection close...")
+
 
 if __name__ == "__main__":
     main()

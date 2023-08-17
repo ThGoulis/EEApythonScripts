@@ -1,10 +1,13 @@
+import csv
+
+
 def WISE_SOW_SurfaceWaterBody_SWB_Table(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SurfaceWaterBody/SWB_NumberSize?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '1.surfaceWaterBodyNumberAndSite2016.csv',
             'w+', newline='') as f:
-        headers = ['Country', 'Number', 'Number (%)', 'Length (km)', 'Length (%)','Area (km^2)', 'Area (%)', 'Median Length (%)', 'Median Area (%)']
-        write = csv.writer((f))
+        headers = ['Country', 'Number', 'Number (%)', 'Length (km)', 'Length (%)', 'Area (km^2)', 'Area (%)', 'Median Length (%)', 'Median Area (%)']
+        write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
         for country in countryCode:
@@ -18,10 +21,10 @@ def WISE_SOW_SurfaceWaterBody_SWB_Table(conn, countryCode, cYear, working_direct
                 CASE WHEN Median_C_Length = "" THEN Median_C_Length ELSE round(Median_C_Length, 1) END,
                 CASE WHEN Median_C_Area = "" THEN Median_C_Area ELSE round(Median_C_Area, 1) END
               FROM SWB_NumberSize_B_data
-            where NUTS0 = ?'''
-                        ,(country,)).fetchall()
-            print(data)
+            where NUTS0 = ?''', (country,)).fetchall()
+            
             write.writerows(data)
+            
             
 def WISE_SOW_SurfaceWaterBody_SWB_Category(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SurfaceWaterBody/SWB_CategoryType?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
@@ -30,35 +33,37 @@ def WISE_SOW_SurfaceWaterBody_SWB_Category(conn, countryCode, cYear, working_dir
     with open(
             working_directory + '3.surfaceWaterBodyCategory2016.csv',
             'w+', newline='') as f:
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
-        WDFCode = ["RW", "LW", "TW", "CW","TeW"]
+        WDFCode = ["RW", "LW", "TW", "CW", "TeW"]
         naturalAWBHMWB = ["Natural water body", "Heavily modified water body", "Artificial water body"]
         cur = conn.cursor()
         for country in countryCode:
             for wdf in WDFCode:
-                for type in naturalAWBHMWB:
+                for types in naturalAWBHMWB:
                     data = cur.execute('SELECT countryCode, '
-                                    'cYear, '
-                                    'surfaceWaterBodyCategory, '
-                                    'naturalAWBHMWB, '
-                                    'COUNT(surfaceWaterBodyCategory) '
-                                    'FROM SOW_SWB_SurfaceWaterBody '
-                                    'WHERE countryCode = ? '
-                                        'AND cYear == ? '
-                                        'and surfaceWaterBodyCategory = ? '
-                                        'and naturalAWBHMWB == ? '
-                                        'and countryCode = ? ',
-                               (country, cYear, wdf, type, country)).fetchall()
+                                            'cYear, '
+                                            'surfaceWaterBodyCategory, '
+                                            'naturalAWBHMWB, '
+                                            'COUNT(surfaceWaterBodyCategory) '
+                                            'FROM SOW_SWB_SurfaceWaterBody '
+                                            'WHERE countryCode = ? '
+                                            'AND cYear == ? '
+                                            'and surfaceWaterBodyCategory = ? '
+                                            'and naturalAWBHMWB == ? '
+                                            'and countryCode = ? ',
+                               (country, cYear, wdf, types, country)).fetchall()
                     write.writerows(data)
                     
+
 def Surface_water_bodies_Ecological_exemptions_and_pressures(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_SWE_swEcologicalExemptionPressure/SWB_SWE_swEcologicalExemptionPressure?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '6.Surface_water_bodies_Ecological_exemptions_and_pressures2016.csv',
             'w+', newline='') as f:
-        header = ["Country", "Year", "Ecological Exemption Type Group", "Ecological Exemption Type", "Ecological Exemption Pressure Group","Ecological Exemption Pressure","Number"]
-        write = csv.writer((f))
+        header = ["Country", "Year", "Ecological Exemption Type Group",
+                  "Ecological Exemption Type", "Ecological Exemption Pressure Group", "Ecological Exemption Pressure", "Number"]
+        write = csv.writer(f)
         write.writerow(header)
 
         cur = conn.cursor()
@@ -77,19 +82,20 @@ def Surface_water_bodies_Ecological_exemptions_and_pressures(conn, countryCode, 
                                   swEcologicalExemptionType,
                                   swEcologicalExemptionPressureGroup,
                                   swEcologicalExemptionPressure;
-                        ''',(cYear,country)
+                        ''', (cYear, country)
                             ).fetchall()
             write.writerows(data)
             
+
 def Surface_water_bodies_Ecological_exemptions_Type(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_SWEcologicalExemptionType/SWB_SWEcologicalExemptionType?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '6.Surface_water_bodies_Ecological_exemptions_Type2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Ecological Exemption Type Group", "Ecological Exemption Type", "Number", "Number(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
-        swEcologicalExemptionTypeGroup = ["Article4(4)","Article4(5)","Article4(6)","Article4(7)"]
+        swEcologicalExemptionTypeGroup = ["Article4(4)", "Article4(5)", "Article4(6)", "Article4(7)"]
         cur = conn.cursor()
         for country in countryCode:
             for values in swEcologicalExemptionTypeGroup:
@@ -107,22 +113,23 @@ def Surface_water_bodies_Ecological_exemptions_Type(conn, countryCode, cYear, wo
                                         'and swEcologicalExemptionTypeGroup <> "Unpopulated" ' 
                                         'AND countryCode = ? '
                                         'AND swEcologicalExemptionTypeGroup = ? '
-                                'group by swEcologicalExemptionType '
-                    ,(cYear, country, values, cYear, country, values)).fetchall()
+                                'group by swEcologicalExemptionType ', (cYear, country, values, cYear, country, values)).fetchall()
                 write.writerows(data)
                 
+
 def Surface_water_bodies_Quality_element_exemptions_Type(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_QE_qeEcologicalExemptionType/SWB_QE_qeEcologicalExemptionType?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '6.Surface_water_bodies_Quality_element_exemptions_Type2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Ecological Exemption Type Group", "Ecological Exemption Type Group", "Number", "Number(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
-        swEcologicalExemptionTypeGroup = ["Article4(4)","Article4(5)","Article4(6)","Article4(7)"]
+        swEcologicalExemptionTypeGroup = ["Article4(4)", "Article4(5)", "Article4(6)", "Article4(7)"]
         cur = conn.cursor()
         for country in countryCode:
             for values in swEcologicalExemptionTypeGroup:
+                write.writerows(data)
                 data = cur.execute('select countryCode, cYear, qeEcologicalExemptionTypeGroup, qeEcologicalExemptionType, count(Distinct euSurfaceWaterBodyCode), '
                                 'round(count(distinct euSurfaceWaterBodyCode) *100.0 / ( '
                                 'select count(distinct euSurfaceWaterBodyCode) '
@@ -136,17 +143,16 @@ def Surface_water_bodies_Quality_element_exemptions_Type(conn, countryCode, cYea
                                         'and qeEcologicalExemptionTypeGroup <> "Unpopulated" ' 
                                         'AND countryCode = ? '
                                         'AND qeEcologicalExemptionTypeGroup = ? '
-                                'group by qeEcologicalExemptionType '
-                    ,(cYear, country, values, cYear, country, values)).fetchall()
-                write.writerows(data)
+                                'group by qeEcologicalExemptionType ', (cYear, country, values, cYear, country, values)).fetchall()
                 
+
 def SWB_Chemical_exemption_type(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_SWP_SWChemicalExemptionType/SWB_SWP_SWChemicalExemptionType?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ["Country", "Chemical Exemption Type Group", "Chemical Exemption Type", "Area (km^2)", "Area (%)"]
     with open(
             working_directory + '6.swChemical_exemption_type2016.csv',
             'w+', newline='') as f:
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
         swChemicalExemptionTypeGroup = cur.execute('''select distinct swChemicalExemptionTypeGroup
@@ -217,19 +223,20 @@ def SWB_Chemical_exemption_type(conn, countryCode, cYear, working_directory):
                     cur.execute(sqlDropArea)
                     cur.execute(sqlArea)
                     data = cur.execute(sqlexecute).fetchall()
-                    print(data)
-                    write.writerows(data)
                     
+                    write.writerows(data)
+
+
 def WISE_SOW_SurfaceWaterBody_SWB_ChemicalStatus_Table(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SurfaceWaterBody/SWB_ChemicalStatus?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ['Country', 'Year', "Chemical Status Value", 'Number', 'Number(%)', 'Length(km)', 'Length(%)', 'Area(km^2)', 'Area(%)']
     with open(
             working_directory + '12.surfaceWaterBodyChemicalStatusGood2016.csv',
             'w+', newline='') as f:
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
-        swChemicalStatusValue = ["2","3"]
+        swChemicalStatusValue = ["2", "3"]
         for country in countryCode:
             for value in swChemicalStatusValue:
                 data = cur.execute('''SELECT DISTINCT countryCode,
@@ -271,19 +278,19 @@ def WISE_SOW_SurfaceWaterBody_SWB_ChemicalStatus_Table(conn, countryCode, cYear,
                            naturalAWBHMWB <> "Unpopulated" AND 
                            naturalAWBHMWB <> "Unknown" AND 
                            countryCode = ? ;
-                '''
-                                ,(cYear,country, cYear, country, cYear,country, cYear, value, country)).fetchall()
+                ''', (cYear, country, cYear, country, cYear, country, cYear, value, country)).fetchall()
 
                 write.writerows(data)
                 
+
 def SurfaceWaterBody_ChemicalStatus_Table_by_Category(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SurfaceWaterBody/SWB_Category_ChemicalStatus?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
-    headers = ['Country', 'Year', 'Surface Water Body Category','Chemical Status Value', 'Number', 'Number(%)']
+    headers = ['Country', 'Year', 'Surface Water Body Category', 'Chemical Status Value', 'Number', 'Number(%)']
     with open(
             # ιδιο για 10 12
             working_directory + '12.SurfaceWaterBody_SWB_ChemicalStatus_Table_by_Category2016.csv',
             'w+', newline='') as f:
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
         WDFCode = ["RW", "LW", "TW", "CW", "TeW"]
@@ -311,18 +318,18 @@ def SurfaceWaterBody_ChemicalStatus_Table_by_Category(conn, countryCode, cYear, 
                                                        swChemicalStatusValue <> "Unpopulated" AND 
                                                        surfaceWaterBodyCategory <> "Unpopulated" AND 
                                                        countryCode = ? AND 
-                                                       surfaceWaterBodyCategory = ?;
-                                                    ''',(cYear, country, wdf,  cYear, status, country, wdf)).fetchall()
-                    print(data)
-                    write.writerows(data)
+                                                       surfaceWaterBodyCategory = ?;''', (cYear, country, wdf,  cYear, status, country, wdf)).fetchall()
                     
+                    write.writerows(data)
+
+
 def Surface_water_bodies_Ecological_status_or_potential_groupGoodHigh(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SurfaceWaterBody/SWB_EcologicalStatusGroup?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ["Country", "Year", "Number", "Number(%)", "Length", "Length(%)", "Area", "Area(%)"]
     with open(
             working_directory + '8.Surface_water_bodies_Ecological_status_or_potential_group_Good_High.csv',
             'w+', newline='') as f:
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
 
@@ -377,18 +384,17 @@ def Surface_water_bodies_Ecological_status_or_potential_groupGoodHigh(conn, coun
                                swEcologicalStatusOrPotentialValue <> "Other" AND 
                                surfaceWaterBodyCategory <> "Unpopulated" AND 
                                naturalAWBHMWB <> "Unknown" AND 
-                               naturalAWBHMWB <> "Unpopulated";
-                            '''
-                                ,(country, cYear, country, cYear, country, cYear, country, cYear)).fetchall()
+                               naturalAWBHMWB <> "Unpopulated";''', (country, cYear, country, cYear, country, cYear, country, cYear)).fetchall()
             write.writerows(data)
             
+
 def Surface_water_bodies_Ecological_status_or_potential_groupFailling(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SurfaceWaterBody/SWB_EcologicalStatusGroup?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ["Country", "Year", "Number", "Number(%)", "Length", "Length(%)", "Area", "Area(%)"]
     with open(
             working_directory + '8.Surface_water_bodies_Ecological_status_or_potential_group_Failing.csv',
             'w+', newline='') as f:
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
 
@@ -444,20 +450,20 @@ def Surface_water_bodies_Ecological_status_or_potential_groupFailling(conn, coun
                                surfaceWaterBodyCategory <> "Unpopulated" AND 
                                naturalAWBHMWB <> "Unknown" AND 
                                naturalAWBHMWB <> "Unpopulated";
-                            '''
-                                ,(country, cYear, country, cYear, country, cYear, country, cYear)).fetchall()
+                            ''', (country, cYear, country, cYear, country, cYear, country, cYear)).fetchall()
             write.writerows(data)
             
+
 def swEcologicalStatusOrPotential_RW_LW_Category2ndRBMP2016(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SurfaceWaterBody/SWB_Category_EcologicalStatus?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
-    headers = ["Country","Year", "Surface Water Body Category","Ecological Status Or Potential Value", "Number"]
+    headers = ["Country", "Year", "Surface Water Body Category", "Ecological Status Or Potential Value", "Number"]
     with open(
             working_directory + '8.swEcologicalStatusOrPotential_RW_LW_Category2ndRBMP2016.csv',
             'w+', newline='') as f:
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
         WDFCode = ["RW", "LW", "TW", "CW", "TeW"]
-        swEcologicalStatusOrPotentialValue = ["1","2","3","4","5","unknown"]
+        swEcologicalStatusOrPotentialValue = ["1", "2", "3", "4", "5", "unknown"]
         cur = conn.cursor()
 
         for country in countryCode:
@@ -469,17 +475,17 @@ def swEcologicalStatusOrPotential_RW_LW_Category2ndRBMP2016(conn, countryCode, c
                                     'where cYear = ? and countryCode = ? '
                                     'and surfaceWaterBodyCategory <> "unpopulated" '
                                     'and surfaceWaterBodyCategory = ? '
-                                    'and swEcologicalStatusOrPotentialValue = ? '
-                                        ,(cYear, country, category, value)).fetchall()
+                                    'and swEcologicalStatusOrPotentialValue = ? ', (cYear, country, category, value)).fetchall()
                     write.writerows(data)
                     
+
 def swEcologicalStatusOrPotential_Unknown_Category2ndRBMP2016(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SurfaceWaterBody/SWB_Category_EcologicalStatus?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ["Country", "Year", "Ecological Status Or Potential Value", "Number"]
     with open(
             working_directory + '10.swEcologicalStatusOrPotential_Unknown_Category2ndRBMP2016.csv',
             'w+', newline='') as f:
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
         WDFCode = ["RW", "LW", "TW", "CW"]
         swEcologicalStatusOrPotentialValue = ["unknown"]
@@ -494,18 +500,17 @@ def swEcologicalStatusOrPotential_Unknown_Category2ndRBMP2016(conn, countryCode,
                                     'where cYear = ? and countryCode = ? '
                                     'and surfaceWaterBodyCategory <> "unpopulated" '
                                     'and surfaceWaterBodyCategory = ? '
-                                    'and swEcologicalStatusOrPotentialValue = ? '
-                                        ,(cYear, country, category, value)).fetchall()
+                                    'and swEcologicalStatusOrPotentialValue = ? ', (cYear, country, category, value)).fetchall()
                     write.writerows(data)
                     
+
 def swEcologicalStatusOrPotentialChemical_by_Country(conn, countryCode, cYear, working_directory):
-    #https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_Status_Compare/SWB_EcologicalStatus_Category?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '14.swEcologicalStatusOrPotential_by_Country.csv',
             'w+', newline='') as f:
         headers = ["Country", "Ecological Status Or Potential Value", "Number", "Number(%)"]
 
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
 
@@ -523,15 +528,14 @@ def swEcologicalStatusOrPotentialChemical_by_Country(conn, countryCode, cYear, w
                             'WHERE cYear = ? '
                             'AND naturalAWBHMWB <> "Unpopulated" '
                             'AND countryCode = ? '
-                            'GROUP BY swEcologicalStatusOrPotentialValue; '
-                ,(cYear, country, cYear, country)).fetchall()
+                            'GROUP BY swEcologicalStatusOrPotentialValue; ', (cYear, country, cYear, country)).fetchall()
             write.writerows(data)
     with open(
             working_directory + '14.swChemical_by_Country.csv',
             'w+', newline='') as f:
-        headers = ["Country", "Chemical Status Value","Number", "Number(%)"]
+        headers = ["Country", "Chemical Status Value", "Number", "Number(%)"]
 
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
 
@@ -549,21 +553,21 @@ def swEcologicalStatusOrPotentialChemical_by_Country(conn, countryCode, cYear, w
                             'WHERE cYear = ? '
                             'AND naturalAWBHMWB <> "Unpopulated" '
                             'AND countryCode = ? '
-                            'GROUP BY swChemicalStatusValue; '
-                ,(cYear, country, cYear, country)).fetchall()
+                            'GROUP BY swChemicalStatusValue; ', (cYear, country, cYear, country)).fetchall()
             write.writerows(data)
+
 
 def swEcologicalStatusOrPotentialValue_swChemicalStatusValue_by_Country_by_Categ(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_Status/SWB_Status_Country?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '15.swEcologicalStatusOrPotentialValue_swChemicalStatusValue_by_Country_by_Categ.csv',
             'w+', newline='') as f:
-        headers = ['Country', 'Year', 'Categories', 'Ecological Status Value', 'Number', 'Number(%)' ]
+        headers = ['Country', 'Year', 'Categories', 'Ecological Status Value', 'Number', 'Number(%)']
 
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
-        swEcologicalStatusOrPotentialValue = ["1","2", "3","4","5", "unknown"]
+        swEcologicalStatusOrPotentialValue = ["1", "2", "3", "4", "5", "unknown"]
         swEcologicalStatusCategories = ["RW", "LW", "CW", "TW", "TeW"]
 
         # for country in countryCode:
@@ -592,15 +596,14 @@ def swEcologicalStatusOrPotentialValue_swChemicalStatusValue_by_Country_by_Categ
                                                        swEcologicalStatusOrPotentialValue = ? and
                                                        naturalAWBHMWB <> "Unpopulated" AND 
                                                        surfaceWaterBodyCategory = ?
-                                                       '''
-                                           ,(cYear,country, categ, cYear,country, status, categ)).fetchall()
+                                                       ''', (cYear, country, categ, cYear, country, status, categ)).fetchall()
                         write.writerows(data)
     with open(
             working_directory + '15.swChemicalStatusValue_by_Country_by_Categ2016.csv',
             'w+', newline='') as f:
-        headers = ['Country', 'Year', 'Categories','Chemical Status Value', 'Number','Number(%)']
+        headers = ['Country', 'Year', 'Categories', 'Chemical Status Value', 'Number', 'Number(%)']
 
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
         swChemicalStatusValue = ["2", "3", "unknown"]
@@ -631,18 +634,18 @@ def swEcologicalStatusOrPotentialValue_swChemicalStatusValue_by_Country_by_Categ
                                                            swChemicalStatusValue = ? and
                                                            naturalAWBHMWB <> "Unpopulated" AND 
                                                            surfaceWaterBodyCategory = ?
-                                                           '''
-                    , (cYear, country,categ, cYear, country, status, categ)
+                                                           ''', (cYear, country, categ, cYear, country, status, categ)
                         ).fetchall()
                     write.writerows(data)
+
 
 def Surface_water_bodies_Failing_notUnknown_by_RBD2016(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_Status_Maps/SWB_Status_RBD?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '17.Surface_water_bodies_Failing_notUnknown_by_RBD2016.csv',
             'w+', newline='') as f:
-        header = ["Country",  "RBD Name", "Known Status", "Failing Status","Failing Status(%)"]
-        write = csv.writer((f))
+        header = ["Country",  "RBD Name", "Known Status", "Failing Status", "Failing Status(%)"]
+        write = csv.writer(f)
         write.writerow(header)
 
         cur = conn.cursor()
@@ -651,20 +654,20 @@ def Surface_water_bodies_Failing_notUnknown_by_RBD2016(conn, countryCode, cYear,
                             C_StatusFailingPercent * 100 
                             from swRBD_Europe_data
                             where NUTS0 = "''' + country + '''" 
-                            group by NUTS0, rbdName; '''
-                            ).fetchall()
-            print(data)
-            write.writerows(data)
+                            group by NUTS0, rbdName; ''').fetchall()
             
+            write.writerows(data)
+
+
 def swb_Chemical_assessment_using_monitoring_grouping_or_expert_judgement(conn, countryCode, cYear, working_directory):
     with open(
             working_directory + '39.swb_Chemical_assessment_using_monitoring_grouping_or_expert_judgement2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Chemical Assessment Confidence", "Chemical Monitoring Results", "Number", "Number(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
-        AssessmentConfidence = ["High","Medium","Low","Unknown"]
-        MonitoringResult = ["Missing","Expert judgement","Monitoring","Grouping"]
+        AssessmentConfidence = ["High", "Medium", "Low", "Unknown"]
+        MonitoringResult = ["Missing", "Expert judgement", "Monitoring", "Grouping"]
         cur = conn.cursor()
         for country in countryCode:
             for assessment in AssessmentConfidence:
@@ -682,8 +685,8 @@ def swb_Chemical_assessment_using_monitoring_grouping_or_expert_judgement(conn, 
                                     'where cYear == ? '
                                         'and countryCode = ? '
                                         'and swChemicalAssessmentConfidence = ? '
-                                        'and swChemicalMonitoringResults = ? '
-                                    ,(cYear, country, assessment, cYear, country, assessment, monitoring)).fetchall()
+                                        'and swChemicalMonitoringResults = ? ', (cYear, country, assessment, cYear,
+                                                                                 country, assessment, monitoring)).fetchall()
                     write.writerows(data)
                     
 def swRBsPollutants(conn, countryCode, cYear, working_directory):
@@ -692,7 +695,7 @@ def swRBsPollutants(conn, countryCode, cYear, working_directory):
             'w+', newline='') as f:
         headers = ["Country", "River Basin Specific Pollutant", "Number", "Number(%)"]
 
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
 
@@ -703,7 +706,7 @@ def swRBsPollutants(conn, countryCode, cYear, working_directory):
                         where NUTS0 = "''' + country + '''"
                         group by NUTS0, River_Basin_Specific_Pollutant;
                         ''').fetchall()
-            print(data)
+            
             write.writerows(data)
             
 def swEcologicalStatusOrPotentialExpectedGoodIn2015(conn, countryCode, cYear, working_directory):
@@ -711,7 +714,7 @@ def swEcologicalStatusOrPotentialExpectedGoodIn2015(conn, countryCode, cYear, wo
             working_directory + '44.swEcologicalStatusOrPotentialExpectedGoodIn2015.csv',
             'w+', newline='') as f:
         header = ["Country",  "Ecological Status Or Potential Expected Good In 2015", "Number", "Number(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         values = ["Yes", "No"]
         cur = conn.cursor()
@@ -738,8 +741,7 @@ def swEcologicalStatusOrPotentialExpectedGoodIn2015(conn, countryCode, cYear, wo
                                        swEcologicalStatusOrPotentialExpectedGoodIn2015 <> "Unpopulated" AND 
                                        cYear == ? AND 
                                        countryCode = ? AND 
-                                       swEcologicalStatusOrPotentialExpectedGoodIn2015 = ?;'''
-                                ,(country, cYear, cYear, country, value)).fetchall()
+                                       swEcologicalStatusOrPotentialExpectedGoodIn2015 = ?;''', (country, cYear, cYear, country, value)).fetchall()
                 write.writerows(data)
                 
 def swEcologicalStatusOrPotentialExpectedAchievementDate(conn, countryCode, cYear, working_directory):
@@ -747,7 +749,7 @@ def swEcologicalStatusOrPotentialExpectedAchievementDate(conn, countryCode, cYea
             working_directory + '45.swEcologicalStatusOrPotentialExpectedAchievementDate2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Ecological Status Or Potential Expected Achievement Date", "Number", "Number(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         swEcologicalStatusOrPotentialExpectedAchievementDate = [
             "Good status already achieved", "Less stringent objectives already achieved",
@@ -776,17 +778,16 @@ def swEcologicalStatusOrPotentialExpectedAchievementDate(conn, countryCode, cYea
                                        swEcologicalStatusOrPotentialValue <> "inapplicable" AND 
                                        swEcologicalStatusOrPotentialValue <> "Unpopulated" AND 
                                        swEcologicalStatusOrPotentialExpectedGoodIn2015 <> "Unpopulated" AND 
-                                       swEcologicalStatusOrPotentialExpectedAchievementDate = ?;
-                '''
-                            ,(country, cYear, country, cYear, date)).fetchall()
+                                       swEcologicalStatusOrPotentialExpectedAchievementDate = ?;''', (country, cYear, country, cYear, date)).fetchall()
                 write.writerows(data)
-                
+
+
 def swChemicalStatusExpectedGoodIn2015(conn, countryCode, cYear, working_directory):
     with open(
             working_directory + '46.swChemicalStatusExpectedGoodIn2015.csv',
             'w+', newline='') as f:
-        header = ["Country",  "Chemical Status Expected Good In 2015" ,"Number", "Number(%)"]
-        write = csv.writer((f))
+        header = ["Country",  "Chemical Status Expected Good In 2015", "Number", "Number(%)"]
+        write = csv.writer(f)
         write.writerow(header)
         values = ["Yes", "No"]
         cur = conn.cursor()
@@ -810,16 +811,16 @@ def swChemicalStatusExpectedGoodIn2015(conn, countryCode, cYear, working_directo
                                        swChemicalStatusValue <> "Unpopulated" AND 
                                        cYear == ? AND 
                                        countryCode = ? AND 
-                                       swChemicalStatusExpectedGoodIn2015 = ?;'''
-                                ,(country, cYear, cYear, country, value)).fetchall()
+                                       swChemicalStatusExpectedGoodIn2015 = ?;''', (country, cYear, cYear, country, value)).fetchall()
                 write.writerows(data)
-                
+
+
 def swChemicalStatusExpectedAchievementDate(conn, countryCode, cYear, working_directory):
     with open(
             working_directory + '47swChemicalStatusExpectedAchievementDate2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Chemical Status Expected Achievement Date", "Number", "Number(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         swChemicalStatusExpectedAchievementDate = [
             "Good status already achieved", "Less stringent objectives already achieved",
@@ -839,19 +840,16 @@ def swChemicalStatusExpectedAchievementDate(conn, countryCode, cYear, working_di
                                 'where countryCode = ? '
                                 'and cYear == ? '
                                 'and swChemicalStatusExpectedAchievementDate <> "Unpopulated" '
-                                'and swChemicalStatusExpectedAchievementDate = ? '
-                                ,(country, cYear, country, cYear, date)).fetchall()
+                                'and swChemicalStatusExpectedAchievementDate = ? ', (country, cYear, country, cYear, date)).fetchall()
                 write.writerows(data)
-                
+
+
 def GroundWaterBodyCategory2016(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_GroundWaterBody/GWB_NumberSize?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
-    allData = []
-    Number = []
     with open(
             working_directory + '2.GroundWaterBodyCategory2016.csv',
-            'w+',newline='') as f:
+            'w+', newline='') as f:
         header = ["Country", "Year", "Number", "Number(%)", "Area", "Area(%)", "Median Area (km^2)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         cur = conn.cursor()
         for country in countryCode:
@@ -868,7 +866,7 @@ def GroundWaterBodyCategory2016(conn, countryCode, cYear, working_directory):
                         where A.cYear == 2016 and 
                         A.countryCode = "''' + country + '''"
                         GROUP BY countryCode;''').fetchall()
-            print(data)
+            
             write.writerows(data)
 
 
@@ -878,7 +876,7 @@ def Groundwater_bodies_Chemical_Exemption_Type(conn, countryCode, cYear, working
             working_directory + '7.Groundwater_bodies_Chemical_Exemption_Type2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Chemical Exemption Type Group", "Chemical Exemption Type", "Area (km^2)", "Area (%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
 
         cur = conn.cursor()
@@ -894,8 +892,7 @@ def Groundwater_bodies_Chemical_Exemption_Type(conn, countryCode, cYear, working
                                                 from SOW_GWB_GWP_GWChemicalExemptionType
                                                 where gwChemicalExemptionType <> "Unpopulated" AND
                                                 gwChemicalExemptionType <> "GWD Article 6(3) - Measures: increased risk" AND
-                                                gwChemicalExemptionType <> "GWD Article 6(3) - Measures: disproportionate cost";
-        ''').fetchall()
+                                                gwChemicalExemptionType <> "GWD Article 6(3) - Measures: disproportionate cost";''').fetchall()
 
         for country in countryCode:
             for chgroup in gwChemicalExemptionTypeGroup:
@@ -913,8 +910,7 @@ def Groundwater_bodies_Chemical_Exemption_Type(conn, countryCode, cYear, working
                                                     gwChemicalStatusValue <> "missing" AND 
                                                     gwChemicalStatusValue <> "unpopulated" AND 
                                                     gwChemicalExemptionTypeGroup = "''' + tempgroup + '''" AND 
-                                                    gwChemicalExemptionType = "''' + temptype + '''";
-                    '''
+                                                    gwChemicalExemptionType = "''' + temptype + '''";'''
 
                     sqlDropArea = '''DROP TABLE IF EXISTS DistinctArea;'''
 
@@ -931,8 +927,7 @@ def Groundwater_bodies_Chemical_Exemption_Type(conn, countryCode, cYear, working
                                               gwChemicalExemptionTypeGroup <> "Article4(6)" AND 
                                               gwChemicalExemptionTypeGroup <> "Article4(7)" AND
                                               gwChemicalStatusValue <> "unpopulated" AND 
-                                              gwChemicalExemptionTypeGroup = "''' + tempgroup + '''";
-                    '''
+                                              gwChemicalExemptionTypeGroup = "''' + tempgroup + '''";'''
 
                     sqlFinal = '''SELECT countryCode,
                                    gwChemicalExemptionTypeGroup,
@@ -967,16 +962,17 @@ def Groundwater_bodies_Chemical_Exemption_Type(conn, countryCode, cYear, working
                     cur.execute(sqlDropArea)
                     cur.execute(sqlArea)
                     data = cur.execute(sqlFinal).fetchall()
-                    print(data)
-                    write.writerows(data)
                     
+                    write.writerows(data)
+
+
 def Groundwater_bodies_Quantitative_Exemption_Type(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_GWB_gwQuantitativeExemptionType/GWB_gwQuantitativeExemptionType?:isGuestRedirectFromVizportal=y&:embed=y
     with open(
             working_directory + '7.Groundwater_bodies_Quantitative_Exemption_Type2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Quantitative Exemption Type Group", "Quantitative Exemption Type", "Area", "Area (%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
 
         cur = conn.cursor()
@@ -984,17 +980,16 @@ def Groundwater_bodies_Quantitative_Exemption_Type(conn, countryCode, cYear, wor
             data = cur.execute('''SELECT NUTS0, Exemption_group, Exemption_type, C_NumberAreaD, C_NumberAreaDPercentPane * 100.0   
                             FROM GWB_gwQuantitativeExemptionType_B_data 
                                where NUTS0 = "''' + country + '''"
-                            GROUP BY NUTS0, Exemption_group, Exemption_type '''
-                            ).fetchall()
-            print(data)
+                            GROUP BY NUTS0, Exemption_group, Exemption_type ''').fetchall()
+            
             write.writerows(data)
             
+
 def gwChemical_exemptions_and_pressures(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_GWB_GWP_GWChemicalExemptionPressure/GWB_GWP_GWC_gwChemicalExemptionPressure?:isGuestRedirectFromVizportal=y&:embed=y
-    with open(working_directory + '7.gwChemical_exemptions_and_pressures.csv',
-            'w+', newline='') as f:
+    with open(working_directory + '7.gwChemical_exemptions_and_pressures.csv', 'w+', newline='') as f:
         header = ["Country",  "Chemical Exemption Type Group", "Chemical Exemption Type", "Chemical Pressure Type Group", "Chemical Pressure Type", "Area (km^2)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
 
         cur = conn.cursor()
@@ -1009,9 +1004,9 @@ def gwChemical_exemptions_and_pressures(conn, countryCode, cYear, working_direct
                          GROUP BY NUTS0,
                                   Exemption_group,
                                   Exemption_type, Pressure_group, Pressure;''').fetchall()
-            print(data)
             write.writerows(data)
             
+
 def Groundwater_bodies_Quantitative_exemptions_and_pressures(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_GWB_gwQuantitativeExemptionPressure/GWB_gwQuantitativeExemptionPressure?:isGuestRedirectFromVizportal=y&:embed=y
     with open(
@@ -1019,7 +1014,7 @@ def Groundwater_bodies_Quantitative_exemptions_and_pressures(conn, countryCode, 
             'w+', newline='') as f:
         header = ["Country", "Year", "Quantitative Exemption Type Group", "Quantitative Exemption Type", "Quantitative Exemption Pressure Group",
                   "Quantitative Exemption Pressure", "Area"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
 
         cur = conn.cursor()
@@ -1029,12 +1024,12 @@ def Groundwater_bodies_Quantitative_exemptions_and_pressures(conn, countryCode, 
                                 gwQuantitativeExemptionPressure, round(sum(cArea)) 
                                 from SOW_GWB_gwQuantitativeExemptionPressure 
                                     where cYear = 2016 and
-                                    countryCode = "'''+ country + '''" 
+                                    countryCode = "''' + country + '''" 
                                         group by countryCode, gwQuantitativeExemptionTypeGroup, gwQuantitativeExemptionType, 
                                         gwQuantitativeExemptionPressureGroup, 
                                         gwQuantitativeExemptionPressure;'''
                                ).fetchall()
-            print(data)
+            
             write.writerows(data)
 
 
@@ -1043,7 +1038,7 @@ def SOW_GWB_GroundWaterBody_GWB_Chemical_status(conn, countryCode, cYear, workin
             working_directory + '20.GroundWaterBodyCategoryChemical_status2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Chemical Status Value", "Area (km^2)", "Area (%)", "Number"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         cur = conn.cursor()
         chemicalStatus = ["2", "3", "unknown"]
@@ -1063,39 +1058,36 @@ def SOW_GWB_GroundWaterBody_GWB_Chemical_status(conn, countryCode, cYear, workin
                                       FROM SOW_GWB_GroundWaterBody
                                      WHERE countryCode = ? AND 
                                            gwChemicalStatusValue = ? AND 
-                                           cYear = ?;
+                                           cYear = ?;''', (country, cYear, country, status, cYear)).fetchall()
 
-               '''
-                                   , (country, cYear, country, status, cYear)).fetchall()
-                print(data)
                 write.writerows(data)
                 
+
 def SOW_GWB_GroundWaterBody_GWB_Quantitative_status(conn, countryCode, cYear, working_directory):
     with open(
-            working_directory + '18.GroundWaterBodyCategoryQuantitative_status2016.csv',
-            'w+',newline='') as f:
+            working_directory + '18.GroundWaterBodyCategoryQuantitative_status2016.csv', 'w+', newline='') as f:
         header = ["Country", "Year", "Quantitative Status Value", "Area (km^2)", "Number"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         cur = conn.cursor()
-        QuantitativeStatus = ["2","3","unknown"]
+        QuantitativeStatus = ["2", "3", "unknown"]
         for country in countryCode:
             for status in QuantitativeStatus:
                data = cur.execute('SELECT DISTINCT countryCode, cYear, gwQuantitativeStatusValue, ROUND(SUM(cArea)), COUNT(DISTINCT euGroundWaterBodyCode) '
                                   'FROM SOW_GWB_GroundWaterBody '
                                 'WHERE countryCode = ? '
                                 'and gwQuantitativeStatusValue = ? '
-                                'and cYear == ?'
-               ,(country, status,cYear )).fetchall()
+                                'and cYear == ?', (country, status, cYear)).fetchall()
                write.writerows(data)
                
+
 def gwQuantitativeStatusValue_gwChemicalStatusValue(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_Status/GWB_Status_Country?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '22.gwQuantitativeStatusValue_Percent_Country_2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Quantitative Status Value", "Area", "Area(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         cur = conn.cursor()
         gwQuantitativeStatusValue = ["2", "3", "unknown"]
@@ -1107,15 +1099,14 @@ def gwQuantitativeStatusValue_gwChemicalStatusValue(conn, countryCode, cYear, wo
                                 'from SOW_GWB_GroundWaterBody '
                                 'where cYear = ? '
                                 'and countryCode = ?'
-                                'and gwQuantitativeStatusValue = ? '
-                ,(cYear, country, cYear, country, value)).fetchall()
+                                'and gwQuantitativeStatusValue = ? ', (cYear, country, cYear, country, value)).fetchall()
                 write.writerows(data)
 
     with open(
             working_directory + '22.gwChemicalStatusValue_Percent_Country_2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Chemical Status Value", "Area"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         cur = conn.cursor()
         gwChemicalStatusValue = ["2", "3", "unknown"]
@@ -1127,16 +1118,16 @@ def gwQuantitativeStatusValue_gwChemicalStatusValue(conn, countryCode, cYear, wo
                                 'from SOW_GWB_GroundWaterBody '
                                 'where cYear = ? '
                                 'and countryCode = ?'
-                                'and gwChemicalStatusValue = ? '
-                ,(cYear, country, cYear, country, value)).fetchall()
+                                'and gwChemicalStatusValue = ? ', (cYear, country, cYear, country, value)).fetchall()
                 write.writerows(data)
                 
+
 def Groundwater_bodies_At_risk_of_failing_to_achieve_good_quantitative_status(conn, countryCode, cYear, working_directory):
     with open(
             working_directory + '25.Groundwater_bodies_At_risk_of_failing_to_achieve_good_quantitative_status2016.csv',
-            'w+',newline='') as f:
-        header = ["Country", "Year", "Quantitative Status Value","Area (km^2)", "Area (%)", "Number"]
-        write = csv.writer((f))
+            'w+', newline='') as f:
+        header = ["Country", "Year", "Quantitative Status Value", "Area (km^2)", "Area (%)", "Number"]
+        write = csv.writer(f)
         write.writerow(header)
         cur = conn.cursor()
         gwAtRiskQuantitative = ["Yes", "No"]
@@ -1160,23 +1151,23 @@ def Groundwater_bodies_At_risk_of_failing_to_achieve_good_quantitative_status(co
                                         'and gwAtRiskQuantitative <> "Unpopulated" '
                                         'and gwAtRiskQuantitative = ? '
                                         'and gwQuantitativeStatusValue <> "unpopulated" '
-                                        'and countryCode = ? '
-                    ,(country, cYear, cYear, status, country)).fetchall()
+                                        'and countryCode = ? ', (country, cYear, cYear, status, country)).fetchall()
 
                 write.writerows(data)
-                
+
+
 def SOW_GWB_gwQuantitativeReasonsForFailure_Table(conn, countryCode, cYear, working_directory):
     with open(
             working_directory + '25.SOW_GWB_gwQuantitativeReasonsForFailure_Table2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Quantitative Status Value", "Quantitative Reasons For Failure", "Area", "Area(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         reasonOfFailure = ["Good status already achieved", "Water balance / Lowering water table", "Saline or other intrusion",
-                           "Dependent terrestrial ecosystems","Associated surface waters"]
+                           "Dependent terrestrial ecosystems", "Associated surface waters"]
         cur = conn.cursor()
         for country in countryCode:
-            for type in reasonOfFailure:
+            for types in reasonOfFailure:
                 data = cur.execute('select countryCode, cYear, gwQuantitativeStatusValue, gwQuantitativeReasonsForFailure, '
                                 'round(sum(cArea), 0), round(sum(cArea) * 100 / ('
                                 'select sum(cArea) from SOW_GWB_GroundWaterBody '
@@ -1188,37 +1179,37 @@ def SOW_GWB_gwQuantitativeReasonsForFailure_Table(conn, countryCode, cYear, work
                                 'and gwQuantitativeReasonsForFailure <> "unpopulated" '
                                 'and gwQuantitativeStatusValue = "3" '
                                 'and countryCode = ? '
-                                'and gwQuantitativeReasonsForFailure = ?'
-                                ,(country, cYear, cYear, country, type)).fetchall()
+                                'and gwQuantitativeReasonsForFailure = ?', (country, cYear, cYear, country, types)).fetchall()
 
                 write.writerows(data)
-                
+
+
 def SOW_GWB_gwChemicalReasonsForFailure_Table(conn, countryCode, cYear, working_directory):
     with open(
             working_directory + 'SOW_GWB_gwChemicalReasonsForFailure_Table2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Quantitative Status Value", "Quantitative Reasons For Failure", "Area", "Area(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         gwAtRiskChemical = ["No", "Yes"]
         cur = conn.cursor()
         for country in countryCode:
-            for type in gwAtRiskChemical:
+            for types in gwAtRiskChemical:
                 data = cur.execute(
                     'select countryCode, cYear, gwChemicalStatusValue,gwAtRiskChemical, sum(cArea) '
                 'from SOW_GWB_gwChemicalReasonsForFailure '
                 'where countryCode = ? and cYear == ?' 
                 'and gwAtRiskChemical <> "Annex 0" and gwAtRiskChemical <> "unpopulated" '
-                'and gwAtRiskChemical = ? '
-                ,(country, cYear, type)).fetchall()
+                'and gwAtRiskChemical = ? ', (country, cYear, types)).fetchall()
                 write.writerows(data)
                 
+
 def gwChemicalStatusValue_Table(conn, countryCode, cYear, working_directory):
     with open(
             working_directory + '26.gwChemicalStatusValue_Table2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Chemical Status Value", "Area (km^2)", "Area (%)", "Number"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         ChemicalStatusValue = ["No", "Yes"]
         cur = conn.cursor()
@@ -1244,8 +1235,7 @@ def gwChemicalStatusValue_Table(conn, countryCode, cYear, working_directory):
                                        gwChemicalStatusValue <> "unpopulated" AND 
                                        countryCode = ? AND 
                                        gwAtRiskChemical = ?;
-                '''
-                    ,(country, cYear, cYear, country, risk)).fetchall()
+                ''', (country, cYear, cYear, country, risk)).fetchall()
                 write.writerows(data)
 
 
@@ -1254,7 +1244,7 @@ def gwQuantitativeStatusExpectedGoodIn2015(conn, countryCode, cYear, working_dir
             working_directory + '29.gwQuantitativeStatusExpectedGoodIn2015.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Quantitative Status Expected Good In 2015", "Area(km^2)", "Area(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
 
         cur = conn.cursor()
@@ -1281,21 +1271,22 @@ def gwQuantitativeStatusExpectedGoodIn2015(conn, countryCode, cYear, working_dir
                                    gwQuantitativeStatusExpectedGoodIn2015 <> "Unpopulated" AND 
                                    cYear = ? ;
 
-                                     '''
-                                   , (country, cYear, country, status, cYear)).fetchall()
+                                     ''', (country, cYear, country, status, cYear)).fetchall()
                 write.writerows(data)
                 
+
 def gwQuantitativeStatusExpectedAchievementDate(conn, countryCode, cYear, working_directory):
     with open(
             working_directory + '30.gwQuantitativeStatusExpectedAchievementDate2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Quantitative Status Expected Good In 2015", "Area", "Area(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
+        cur = conn.cursor()
         gwQuantitativeStatusExpectedAchievementDate = [
             "Good status already achieved", "Less stringent objectives already achieved",
             "2016--2021", "2022--2027", "Beyond 2027", "Unknown"]
-        cur = conn.cursor()
+
         for country in countryCode:
             for date in gwQuantitativeStatusExpectedAchievementDate:
                 data = cur.execute('select countryCode, cYear, gwQuantitativeStatusExpectedAchievementDate, round(sum(cArea),0), round(sum(cArea) * 100 / '
@@ -1303,21 +1294,21 @@ def gwQuantitativeStatusExpectedAchievementDate(conn, countryCode, cYear, workin
                                     'from SOW_GWB_GroundWaterBody '
                                     'where countryCode = ? and cYear == ? '
                                     'and gwQuantitativeStatusExpectedAchievementDate <> "unpopulated" '
-                                    'and gwQuantitativeStatusExpectedAchievementDate = ? '
-                                    ,(country, cYear, country, cYear, date)).fetchall()
+                                    'and gwQuantitativeStatusExpectedAchievementDate = ? ', (country, cYear, country, cYear, date)).fetchall()
                 write.writerows(data)
-                
+
+
 def gwChemicalStatusExpectedGoodIn2015(conn, countryCode, cYear, working_directory):
     with open(
             working_directory + '31.gwChemicalStatusExpectedGoodIn2015.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Chemical Status Expected Good In 2015", "Area", "Area(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         gwQuantitativeStatusExpectedAchievementDate = ["Yes", "No"]
         cur = conn.cursor()
         for country in countryCode:
-            for type in gwQuantitativeStatusExpectedAchievementDate:
+            for types in gwQuantitativeStatusExpectedAchievementDate:
                 data = cur.execute('select countryCode, cYear, gwChemicalStatusExpectedGoodIn2015, round(sum(cArea),0), '
                                 'round(sum(cArea) * 100 / (select sum(cArea) '
                                 'from SOW_GWB_GroundWaterBody where ' 
@@ -1326,16 +1317,16 @@ def gwChemicalStatusExpectedGoodIn2015(conn, countryCode, cYear, working_directo
                                 'where cYear == ? '
                                 'and gwChemicalStatusValue <> "unpopulated" '
                                 'and countryCode = ? '
-                                'and gwChemicalStatusExpectedGoodIn2015 = ? '
-                                ,(cYear, country,cYear,country,type)).fetchall()
+                                'and gwChemicalStatusExpectedGoodIn2015 = ? ', (cYear, country, cYear, country, types)).fetchall()
                 write.writerows(data)
                 
+
 def gwChemicalStatusExpectedAchievementDate(conn, countryCode, cYear, working_directory):
     with open(
             working_directory + '32.gwChemicalStatusExpectedAchievementDate2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Quantitative Status Expected Good In 2015", "Area", "Area(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         gwQuantitativeStatusExpectedAchievementDate = [
             "Good status already achieved", "Less stringent objectives already achieved",
@@ -1348,18 +1339,19 @@ def gwChemicalStatusExpectedAchievementDate(conn, countryCode, cYear, working_di
                                     'from SOW_GWB_GroundWaterBody '
                                     'where countryCode = ? and cYear == ? '
                                     'and gwChemicalStatusExpectedAchievementDate <> "unpopulated" '
-                                    'and gwChemicalStatusExpectedAchievementDate = ? '
-                                    ,(country, cYear, country, cYear, date)).fetchall()
+                                    'and gwChemicalStatusExpectedAchievementDate = ? ', (country, cYear, country, cYear, date)).fetchall()
                 write.writerows(data)
                 
+
 def gwQuantitativeAssessmentConfidence(conn, countryCode, cYear, working_directory):
     with open(
             working_directory + '35.gwQuantitativeAssessmentConfidence2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Quantitative Assessment Confidence", "Area", "Area(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
-        gwQuantitativeAssessmentConfidence = ["High","Medium", "Low", "Unknown"]
+        gwQuantitativeAssessmentConfidence = ["High", "Medium", "Low", "Unknown"]
+
         cur = conn.cursor()
         for country in countryCode:
             for value in gwQuantitativeAssessmentConfidence:
@@ -1370,18 +1362,17 @@ def gwQuantitativeAssessmentConfidence(conn, countryCode, cYear, working_directo
                             'from SOW_GWB_GroundWaterBody '
                             'where cYear == ? and countryCode = ? '
                             'and gwQuantitativeAssessmentConfidence <> "unpopulated" '
-                            'and gwQuantitativeAssessmentConfidence = ? '
-                            ,(cYear, country, cYear, country, value)).fetchall()
+                            'and gwQuantitativeAssessmentConfidence = ? ', (cYear, country, cYear, country, value)).fetchall()
                 write.writerows(data)
-                
+
+
 def gwChemicalAssessmentConfidence(conn, countryCode, cYear, working_directory):
     with open(
-            working_directory + '36.gwChemicalAssessmentConfidence2016.csv',
-            'w+', newline='') as f:
+            working_directory + '36.gwChemicalAssessmentConfidence2016.csv', 'w+', newline='') as f:
         header = ["Country", "Year", "Chemical Assessment Confidence", "Area", "Area(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
-        gwChemicalAssessmentConfidence = ["High","Medium", "Low", "Unknown"]
+        gwChemicalAssessmentConfidence = ["High", "Medium", "Low", "Unknown"]
         cur = conn.cursor()
         for country in countryCode:
             for value in gwChemicalAssessmentConfidence:
@@ -1392,17 +1383,17 @@ def gwChemicalAssessmentConfidence(conn, countryCode, cYear, working_directory):
                             'from SOW_GWB_GroundWaterBody '
                             'where cYear == ? and countryCode = ? '
                             'and gwChemicalAssessmentConfidence <> "unpopulated" '
-                            'and gwChemicalAssessmentConfidence = ? '
-                            ,(cYear, country, cYear, country, value)).fetchall()
+                            'and gwChemicalAssessmentConfidence = ? ', (cYear, country, cYear, country, value)).fetchall()
                 write.writerows(data)
            
+
 def Number_of_groundwater_bodies_failing_to_achieve_good_status(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_GWB_GWP_GWChemicalExemptionPressure/GWB_GWP_GWC_gwChemicalExemptionPressure?:isGuestRedirectFromVizportal=y&:embed=y
     with open(
             working_directory + '37.Number_of_groundwater_bodies_failing_to_achieve_good_status.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Good", "Failing", "Number"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
 
         cur = conn.cursor()
@@ -1427,13 +1418,15 @@ def geologicalFormation(conn, countryCode, cYear, working_directory):
             working_directory + '38.GWB_geologicalFormation2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Geological Formation", "Area(km^2)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
+
         geologicalFormation = ["Porous aquifers - highly productive", "Porous aquifers - moderately productive",
                                "Fissured aquifers including karst - highly productive",
                                "Fissured aquifers including karst - moderately productive",
                                "Fractured aquifers - highly productive", "Fractured aquifers - moderately productive"]
         cur = conn.cursor()
+
         for country in countryCode:
             for value in geologicalFormation:
                 data = cur.execute('select countryCode, cYear, geologicalFormation, round(sum(cArea),0) '
@@ -1442,32 +1435,33 @@ def geologicalFormation(conn, countryCode, cYear, working_directory):
                                    'and countryCode = ? '
                                    'and cYear == ? '
                                    'and gwQuantitativeStatusValue <> "unknown" '
-
                                    'and geologicalFormation <> "Missing" '
                                    'and geologicalFormation <> "Unknown" '
                                    'and geologicalFormation <> "Insignificant aquifers - local and limited groundwater" '
                                    'and geologicalFormation <> "unpopulated" '
-                                   'and countryCode = ? '
-                                   , (value, country, cYear, country)).fetchall()
-                print(data)
+                                   'and countryCode = ? ', (value, country, cYear, country)).fetchall()
+                
                 write.writerows(data)
                 
+
 def swSignificant_Pressure_Type_Table2016(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_PressuresImpacts/SWB_Pressures?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ['Country','Significant Pressure Type Group', 'Significant Pressure Type', 'Number', 'Number(%)']
     with open(
             working_directory + '4.swSignificant_Pressure_Type_Table2016.csv',
             'w+', newline='') as f:
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
 
-        swSignificantPressureTypeGroup = ["P1 - Point sources","P2 - Diffuse sources", "P2-7 - Diffuse - Atmospheric deposition ", "P3 - Abstraction", "P4 - Hydromorphology",
-                                          "P5 - Introduced species and litter", "P6 - Groundwater recharge or water level", "P7 - Anthropogenic pressure - Other", "P8 - Anthropogenic pressure - Unknown",
+        swSignificantPressureTypeGroup = ["P1 - Point sources", "P2 - Diffuse sources", "P2-7 - Diffuse - Atmospheric deposition ",
+                                          "P3 - Abstraction", "P4 - Hydromorphology",
+                                          "P5 - Introduced species and litter", "P6 - Groundwater recharge or water level",
+                                          "P7 - Anthropogenic pressure - Other", "P8 - Anthropogenic pressure - Unknown",
                                           "P9 - Anthropogenic pressure - Historical pollution", "P0 - No significant anthropogenic pressure"]
 
         cur = conn.cursor()
         for country in countryCode:
-            for type in swSignificantPressureTypeGroup:
+            for types in swSignificantPressureTypeGroup:
                 data = cur.execute('''SELECT DISTINCT countryCode,
                                                         swSignificantPressureTypeGroup,
                                                         swSignificantPressureType,
@@ -1497,7 +1491,7 @@ def swSignificant_Pressure_Type_Table2016(conn, countryCode, cYear, working_dire
                                                                swChemicalStatusValue <> "Unpopulated"
                                                                AND swSignificantPressureTypeGroup = ?
                                                          GROUP BY swSignificantPressureType;
-                                    ''', (cYear, country, type, cYear, country, type)).fetchall()
+                                    ''', (cYear, country, types, cYear, country, types)).fetchall()
                 write.writerows(data)
 
 
@@ -1507,7 +1501,7 @@ def SignificantImpactType_Table2016(conn, countryCode, cYear, working_directory)
             working_directory + '4.SignificantImpactType_Table2016.csv',
             'w+', newline='') as f:
         headers = ['Country', 'Significant Impact Type', 'Number', 'Number(%)']
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
 
         cur = conn.cursor()
@@ -1534,8 +1528,7 @@ def SignificantImpactType_Table2016(conn, countryCode, cYear, working_directory)
                                                        cYear == ? AND
                                                        countryCode = ? 
 
-                                                 GROUP BY swSignificantImpactType;'''
-                               , (cYear, country, cYear, country)).fetchall()
+                                                 GROUP BY swSignificantImpactType;''', (cYear, country, cYear, country)).fetchall()
             write.writerows(data)
 
 
@@ -1545,7 +1538,7 @@ def swSignificantImpactType_Table_Other2016(conn, countryCode, cYear, working_di
     with open(
             working_directory + '4.swSignificantImpactType_Table_Other2016.csv',
             'w+', newline='') as f:
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
 
         cur = conn.cursor()
@@ -1577,12 +1570,13 @@ def swSignificantImpactType_Table_Other2016(conn, countryCode, cYear, working_di
                                             ''', (cYear, country, cYear, country)).fetchall()
             write.writerows(data)
             
+
 def swSignificantPressureType_Table_Other(conn, countryCode, cYear, working_directory):
     headers = ['Country', 'Significant Pressure Other', 'Number', 'Number(%)']
     with open(
             working_directory + '4.swSignificantPressureType_Table_Other.csv',
             'w+', newline='', encoding="utf-8") as f:
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
         for country in countryCode:
@@ -1601,27 +1595,29 @@ def swSignificantPressureType_Table_Other(conn, countryCode, cYear, working_dire
                                countryCode = ?
                          GROUP BY swSignificantPressureOther
                          ORDER BY COUNT(swSignificantPressureOther) DESC;
-                         ''',(cYear, country, cYear, country)).fetchall()
+                         ''', (cYear, country, cYear, country)).fetchall()
             write.writerows(data)
             
-def SOW_GWB_gwSignificantPressureType_NumberOfImpact_by_country (conn, countryCode, cYear, working_directory):
+
+def SOW_GWB_gwSignificantPressureType_NumberOfImpact_by_country(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_PressuresImpacts/GWB_Pressures_Other?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ['Country', 'Impact', 'Area', 'Percent(%)']
     with open(
             working_directory + ''
             '5.SOW_GWB_gwSignificantPressureType_NumberOfImpact_by_country.csv',
             'w+', newline='', encoding="utf-8") as f:
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
         for country in countryCode:
             data = cur.execute('''SELECT NUTS0, C_ImpactDSet, C_NumberAreaD, round(C_NumberAreaDPercentPane * 100) 
                             FROM GWB_ImpactsCount_Country_R_data 
-                               where NUTS0 = "''' + country +'''"
+                               where NUTS0 = "''' + country + '''"
                             GROUP BY NUTS0, C_ImpactDSet; '''
                             ).fetchall()
-            print(data)
+            
             write.writerows(data)
+
 
 def gwSignificantImpactType2016(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_PressuresImpacts/GWB_Impacts?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
@@ -1629,7 +1625,7 @@ def gwSignificantImpactType2016(conn, countryCode, cYear, working_directory):
             working_directory + '5.gwSignificantImpactType2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Significant Impact Type", "Area (km^2)", "Area (%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
 
         cur = conn.cursor()
@@ -1693,16 +1689,17 @@ def gwSignificantImpactType2016(conn, countryCode, cYear, working_directory):
                 cur.execute(sqlDropArea)
                 cur.execute(sqlArea)
                 data = cur.execute(sqlFinal).fetchall()
-                print(data)
+                
                 write.writerows(data)
                 
+
 def gwSignificantImpactType_Other(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_PressuresImpacts/GWB_Impacts_Other?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '5.gwSignificantImpactType_Other.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Significant Impact Other", "Area (km^2)", "Area (%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
 
         cur = conn.cursor()
@@ -1715,8 +1712,7 @@ def gwSignificantImpactType_Other(conn, countryCode, cYear, working_directory):
                             ')) '
                             'FROM SOW_GWB_gwSignificantImpactOther '
                             'WHERE cYear = ? AND countryCode = ? '
-                            'GROUP BY gwSignificantImpactOther '
-            ,(cYear, country, cYear,country)).fetchall()
+                            'GROUP BY gwSignificantImpactOther ', (cYear, country, cYear, country)).fetchall()
             write.writerows(data)
 
 
@@ -1726,7 +1722,7 @@ def gwSignificantPressureType2016(conn, countryCode, cYear, working_directory):
     with open(
             working_directory + '5.gwSignificantPressureType2016.csv',
             'w+', newline='') as f:
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
         print("we are here")
@@ -1798,9 +1794,10 @@ def gwSignificantPressureType2016(conn, countryCode, cYear, working_directory):
                     cur.execute(sqlDropdenominator)
                     cur.execute(sqlDenominator)
                     data = cur.execute(sqlFinal).fetchall()
-                    print(data)
+                    
                     write.writerows(data)
                     
+
 def gwSignificantPressureType_OtherTable2016(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_PressuresImpacts/GWB_Pressures_Other?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ['Country', 'Year', 'Significant Pressure Other', 'Area', 'Area(%)']
@@ -1808,7 +1805,7 @@ def gwSignificantPressureType_OtherTable2016(conn, countryCode, cYear, working_d
             working_directory + ''
             '5.gwSignificantPressureType_OtherTable2016.csv',
             'w+', newline='', encoding="utf-8") as f:
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
         for country in countryCode:
@@ -1823,14 +1820,15 @@ def gwSignificantPressureType_OtherTable2016(conn, countryCode, cYear, working_d
                                'GROUP BY gwSignificantPressureOther '
                                , (cYear, country, cYear, country)).fetchall()
             write.writerows(data)
-            
+
+
 def SOW_GWB_gwPollutant_Table(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_gwPollutant/GWB_gwPollutant?:isGuestRedirectFromVizportal=y&:embed=y
     with open(
             working_directory + '21.SOW_GWB_gwPollutant_Table2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Pollutant", "Area(km^2)", "Area(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         cur = conn.cursor()
         for country in countryCode:
@@ -1842,17 +1840,17 @@ def SOW_GWB_gwPollutant_Table(conn, countryCode, cYear, working_directory):
                      WHERE NUTS0 = ?
                      GROUP BY NUTS0,
                               Pollutant
-                        ORDER BY C_NumberAreaD DESC;'''
-                            ,(country,)).fetchall()
+                        ORDER BY C_NumberAreaD DESC;''', (country,)).fetchall()
             write.writerows(data)
             
+
 def SOW_GWB_gwPollutant_Table_Other(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_gwPollutantOther/WISE_SOW_gwPollutantOther?:isGuestRedirectFromVizportal=y&:embed=y
     with open(
             working_directory + '21.SOW_GWB_gwPollutant_Table_Other' + '.csv',
             'w+', newline='') as f:
         header = ["Country", "Pollutant Other", "Area(km^2)", "Area(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         cur = conn.cursor()
         for country in countryCode:
@@ -1872,17 +1870,17 @@ def SOW_GWB_gwPollutant_Table_Other(conn, countryCode, cYear, working_directory)
                                        cYear = ? AND 
                                        countryCode = ?
                                        GROUP BY gwPollutantOther
-            '''
-                ,(country,cYear, cYear, country)).fetchall()
+            ''', (country, cYear, cYear, country)).fetchall()
             write.writerows(data)
-            
+
+
 def swRiver_basin_specific_pollutants_reported_as_Other(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_FailingRBSPOther/SWB_FailingRBSPOther?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '40.Surface_water_bodies_River_basin_specific_pollutants_reported_as_Other2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Year", "Failing RBSP Other", "Number", "Number(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         cur = conn.cursor()
 
@@ -1894,18 +1892,17 @@ def swRiver_basin_specific_pollutants_reported_as_Other(conn, countryCode, cYear
                         'from SOW_SWB_FailingRBSPOther '
                         'where cYear == ? '
                         'and countryCode = ? '
-                               'GROUP BY swFailingRBSPOther ORDER BY count(swFailingRBSP) '
-                               ,(cYear, country, cYear, country)).fetchall()
-            print(data)
+                               'GROUP BY swFailingRBSPOther ORDER BY count(swFailingRBSP) ', (cYear, country, cYear, country)).fetchall()
             write.writerows(data)
-            
+
+
 def Ground_water_bodies_Failing_notUnknown_by_Country(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_GWB_Status_Maps/GWB_Status_NUTS0?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '23.Ground_water_bodies_Failing_notUnknown_by_Country2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Known Status", "Failing status", "Failing(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         cur = conn.cursor()
         for country in countryCode:
@@ -1915,19 +1912,17 @@ def Ground_water_bodies_Failing_notUnknown_by_Country(conn, countryCode, cYear, 
                                round(C_StatusFailing * 100.0 / C_StatusKnown) 
                           FROM gwNUTS0_Europe_data 
                           where NUTS0 = "''' + country + '''"
-                         GROUP BY NUTS0 '''
-
-                        ,()).fetchall()
-            print(data)
+                         GROUP BY NUTS0 ''').fetchall()
             write.writerows(data)
-            
+
+
 def Ground_water_bodies_Failing_notUnknown_by_RBD(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_GWB_Status_Maps/GWB_Status_RBD?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '24.Ground_water_bodies_Failing_notUnknown_by_RBD2016.csv',
             'w+', newline='') as f:
-        header = ["Country", "RBD Code","RBD Name", "Known Status", "Failing status", "Failing(%)"]
-        write = csv.writer((f))
+        header = ["Country", "RBD Code", "RBD Name", "Known Status", "Failing status", "Failing(%)"]
+        write = csv.writer(f)
         write.writerow(header)
         cur = conn.cursor()
         for country in countryCode:
@@ -1939,19 +1934,17 @@ def Ground_water_bodies_Failing_notUnknown_by_RBD(conn, countryCode, cYear, work
                                round(C_StatusFailing * 100.0 / C_StatusKnown) 
                           FROM gwRBD_EUROPE_DATA 
                           where NUTS0 = "''' + country + '''"
-                         GROUP BY euRBDCode '''
-
-                        ,()).fetchall()
-            print(data)
+                         GROUP BY euRBDCode ''').fetchall()
             write.writerows(data)
-            
+
+
 def Surface_water_bodies_Failing_notUnknown_by_Country(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_GWB_Status_Maps/GWB_Status_NUTS0?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '16.Surface_water_bodies_Failing_notUnknown_by_Country2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Known Status", "Failing status", "Failing(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         cur = conn.cursor()
         for country in countryCode:
@@ -1961,16 +1954,8 @@ def Surface_water_bodies_Failing_notUnknown_by_Country(conn, countryCode, cYear,
                                round(C_StatusFailing * 100.0 / C_StatusKnown) 
                           FROM swNUTS0_Europe_data
                           where NUTS0 = "''' + country + '''" 
-                         GROUP BY NUTS0 '''
-                        ,()).fetchall()
-            print(data)
+                         GROUP BY NUTS0 ''').fetchall()
             write.writerows(data)
-
-
-import csv
-import sqlite3
-
-working_directory = 'C:\\Users\\Theofilos Goulis\\Documents\\BaselineAllData\\NL\\'
 
 
 def Surface_water_bodies_QE1_Biological_quality_elements_assessment(conn, countryCode, cYear, working_directory):
@@ -1979,7 +1964,7 @@ def Surface_water_bodies_QE1_Biological_quality_elements_assessment(conn, countr
             working_directory + '42.Surface_water_bodies_QE1_Biological_quality_elements_assessment2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Monitoring Results", "Code", "Number", "Number(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         MonitoringResult = ["Monitoring", "Grouping", "Expert judgement", "Unpopulated"]
         cur = conn.cursor()
@@ -1988,8 +1973,7 @@ def Surface_water_bodies_QE1_Biological_quality_elements_assessment(conn, countr
                              'where cYear == ? '
                              'and swEcologicalStatusOrPotentialValue <> "unpopulated" '
                              'and naturalAWBHMWB <> "unpopulated" '
-                             'and qeCode like "QE1%" '
-                             , (cYear,)).fetchall()
+                             'and qeCode like "QE1%" ', (cYear,)).fetchall()
 
         for country in countryCode:
             for result in MonitoringResult:
@@ -2012,9 +1996,8 @@ def Surface_water_bodies_QE1_Biological_quality_elements_assessment(conn, countr
                                            naturalAWBHMWB <> "unpopulated" AND 
                                            qeCode = ? AND 
                                            qeMonitoringResults = ?;
-                    '''
-                                       , (country, cYear, *value, cYear, country, *value, result)).fetchall()
-                    write.writerows(data)
+                    ''', (country, cYear, *value, cYear, country, *value, result)).fetchall()
+                write.writerows(data)
 
 
 def Surface_water_bodies_QE2_assessment(conn, countryCode, cYear, working_directory):
@@ -2023,7 +2006,7 @@ def Surface_water_bodies_QE2_assessment(conn, countryCode, cYear, working_direct
             working_directory + '42.Surface_water_bodies_QE2_assessment2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Monitoring Results", "Code", "Number", "Number(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         MonitoringResult = ["Monitoring", "Grouping", "Expert judgement", "Unpopulated"]
         cur = conn.cursor()
@@ -2032,8 +2015,7 @@ def Surface_water_bodies_QE2_assessment(conn, countryCode, cYear, working_direct
                              'where cYear == ? '
                              'and swEcologicalStatusOrPotentialValue <> "unpopulated" '
                              'and naturalAWBHMWB <> "unpopulated" '
-                             'and qeCode like "QE2%" '
-                             , (cYear,)).fetchall()
+                             'and qeCode like "QE2%" ', (cYear,)).fetchall()
 
         for country in countryCode:
             for result in MonitoringResult:
@@ -2057,9 +2039,9 @@ def Surface_water_bodies_QE2_assessment(conn, countryCode, cYear, working_direct
                                            naturalAWBHMWB <> "unpopulated" AND 
                                            qeCode = ? AND 
                                            qeMonitoringResults = ?;
-                    '''
-                                       , (country, cYear, *value, cYear, country, *value, result)).fetchall()
+                    ''', (country, cYear, *value, cYear, country, *value, result)).fetchall()
                     write.writerows(data)
+
 
 def Surface_water_bodies_QE3_assessment(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_qeMonitoringResults/SWB_qeMonitoringResults?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
@@ -2067,7 +2049,7 @@ def Surface_water_bodies_QE3_assessment(conn, countryCode, cYear, working_direct
             working_directory + '42.Surface_water_bodies_QE3_assessment2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Monitoring Results", "Code", "Number", "Number(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         MonitoringResult = ["Monitoring", "Grouping", "Expert judgement", "Unpopulated"]
         cur = conn.cursor()
@@ -2076,8 +2058,7 @@ def Surface_water_bodies_QE3_assessment(conn, countryCode, cYear, working_direct
                              'where cYear == ? '
                              'and swEcologicalStatusOrPotentialValue <> "unpopulated" '
                              'and naturalAWBHMWB <> "unpopulated" '
-                             'and qeCode like "QE3-1%" '
-                             , (cYear,)).fetchall()
+                             'and qeCode like "QE3-1%" ', (cYear,)).fetchall()
 
         for country in countryCode:
             for result in MonitoringResult:
@@ -2100,9 +2081,9 @@ def Surface_water_bodies_QE3_assessment(conn, countryCode, cYear, working_direct
                                            naturalAWBHMWB <> "unpopulated" AND 
                                            qeCode = ? AND 
                                            qeMonitoringResults = ?;
-                    '''
-                                       , (country, cYear, *value, cYear, country, *value, result)).fetchall()
+                    ''', (country, cYear, *value, cYear, country, *value, result)).fetchall()
                     write.writerows(data)
+
 
 def Surface_water_bodies_QE3_3_assessment(conn, countryCode, cYear, working_directory):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_qeMonitoringResults/SWB_qeMonitoringResults?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
@@ -2110,7 +2091,7 @@ def Surface_water_bodies_QE3_3_assessment(conn, countryCode, cYear, working_dire
             working_directory + '42.Surface_water_bodies_QE3_3_assessment2016.csv',
             'w+', newline='') as f:
         header = ["Country", "Monitoring Results", "Code", "Number", "Number(%)"]
-        write = csv.writer((f))
+        write = csv.writer(f)
         write.writerow(header)
         MonitoringResult = ["Monitoring", "Grouping", "Expert judgement", "Unpopulated"]
         cur = conn.cursor()
@@ -2119,8 +2100,7 @@ def Surface_water_bodies_QE3_3_assessment(conn, countryCode, cYear, working_dire
                              'where cYear == ? '
                              'and swEcologicalStatusOrPotentialValue <> "unpopulated" '
                              'and naturalAWBHMWB <> "unpopulated" '
-                             'and qeCode like "QE3-3%" '
-                             , (cYear,)).fetchall()
+                             'and qeCode like "QE3-3%" ', (cYear,)).fetchall()
 
         for country in countryCode:
             for result in MonitoringResult:
@@ -2142,7 +2122,5 @@ def Surface_water_bodies_QE3_3_assessment(conn, countryCode, cYear, working_dire
                                            swEcologicalStatusOrPotentialValue <> "unpopulated" AND 
                                            naturalAWBHMWB <> "unpopulated" AND 
                                            qeCode = ? AND 
-                                           qeMonitoringResults = ?;
-                    '''
-                                       , (country, cYear, *value, cYear, country, *value, result)).fetchall()
+                                           qeMonitoringResults = ?;''', (country, cYear, *value, cYear, country, *value, result)).fetchall()
                     write.writerows(data)
