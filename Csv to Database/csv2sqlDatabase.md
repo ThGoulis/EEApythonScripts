@@ -1,7 +1,9 @@
 Csv to Sql Database
 =
 Prerequest
-- Csv 
+- Csv
+
+  
 import csv
 import sqlite3
 import glob
