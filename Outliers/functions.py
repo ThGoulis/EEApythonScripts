@@ -1,10 +1,9 @@
 import csv
-import pandas as pd
 
 empty_line = ['', '', '', '', '', '']
 country = ['AT']
 
-def _1_swNumberAndSize(working_directory, conn, file):
+def _1_swNumberAndSize(conn, file):
     headers = ['1', '', 'Number and size of surface water bodies', '', '', '']
 
     write = csv.writer(file)
@@ -27,7 +26,7 @@ def _1_swNumberAndSize(working_directory, conn, file):
 
         write.writerows(data)
 
-def _2_gwNumberAndSize(working_directory, conn, file):
+def _2_gwNumberAndSize(conn, file):
     headers = ['2','', 'Number and size of groundwater bodies', '', '', '']
 
     write = csv.writer(file)
@@ -51,7 +50,7 @@ def _2_gwNumberAndSize(working_directory, conn, file):
 
         write.writerows(data)
 
-def _3_surfaceWaterBodyCategory(working_directory, conn, file):
+def _3_surfaceWaterBodyCategory(conn, file):
     headers = ['3','', 'Number of surface water bodies by category and type', '', '', '']
 
     write = csv.writer(file)
@@ -84,7 +83,7 @@ def _3_surfaceWaterBodyCategory(working_directory, conn, file):
 
             write.writerows(data)
 
-def _4_SignificantImpactType_Table(working_directory, conn, file):
+def _4_SignificantImpactType_Table(conn, file):
     headers = ['', '', 'Significant Impacts (Number)', '', '', '']
 
     code = ''.join(country)
@@ -128,7 +127,7 @@ def _4_SignificantImpactType_Table(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _4_Significant_impacts_other(working_directory, conn, file):
+def _4_Significant_impacts_other(conn, file):
     headers = ['', '', 'Significant Impacts other (Number)', '', '', '']
     code = ''.join(country)
     write = csv.writer(file)
@@ -170,7 +169,7 @@ def _4_Significant_impacts_other(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _4_swNumber_of_impacts_by_country(working_directory, conn, file):
+def _4_swNumber_of_impacts_by_country(conn, file):
     headers_topic =['4', '', 'Surface water bodies significant pressures and impacts', '', '', '']
     headers = ['', '', 'Number of impacts', '', '', '']
 
@@ -199,7 +198,7 @@ def _4_swNumber_of_impacts_by_country(working_directory, conn, file):
 
         write.writerows(data)
 
-def _4_swSignificant_Pressure_Type_Table(working_directory, conn, file):
+def _4_swSignificant_Pressure_Type_Table(conn, file):
     headers = ['', '', 'Significant Pressures (Number)', '', '', '']
 
     code = ''.join(country)
@@ -241,7 +240,7 @@ def _4_swSignificant_Pressure_Type_Table(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _4_swSignificant_Pressure_Type_Table_Others(working_directory, conn, file):
+def _4_swSignificant_Pressure_Type_Table_Others(conn, file):
     headers = ['', '', 'Significant Pressures Other', '', '', '']
 
     code = ''.join(country)
@@ -285,7 +284,7 @@ def _4_swSignificant_Pressure_Type_Table_Others(working_directory, conn, file):
     write.writerows(data)
 
 
-def _5_1_gwSignificantImpactTypeByCountry(working_directory, conn, file):
+def _5_1_gwSignificantImpactTypeByCountry(conn, file):
     header_topic = ['5', '', 'Groundwater bodies significant pressures and impacts', '', '', '']
     headers = ['', '', 'Number of Impacts (Area km2)', '', '', '']
 
@@ -306,7 +305,7 @@ def _5_1_gwSignificantImpactTypeByCountry(working_directory, conn, file):
 
         write.writerows(data)
 
-def _5_gwSignificantImpactType(working_directory, conn, file):
+def _5_gwSignificantImpactType(conn, file):
     headers = ['','', 'Significant Impact (Area km2)', '', '', '']
 
     code = ''.join(country)
@@ -350,7 +349,7 @@ def _5_gwSignificantImpactType(working_directory, conn, file):
     write.writerows(data)
 
 
-def _5_gwSignificantImpactTypeOther(working_directory, conn, file):
+def _5_gwSignificantImpactTypeOther(conn, file):
     headers = ['', '', 'Significant Impact Other (Area km2)', '', '', '']
 
     code = ''.join(country)
@@ -393,7 +392,7 @@ def _5_gwSignificantImpactTypeOther(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _5_gwSignificantPressureType(working_directory, conn, file):
+def _5_gwSignificantPressureType(conn, file):
     headers = ['','', 'Significant Pressure (Area km2)', '', '', '']
 
     code = ''.join(country)
@@ -436,7 +435,7 @@ def _5_gwSignificantPressureType(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _5_gwSignificantPressureTypeOther(working_directory, conn, file):
+def _5_gwSignificantPressureTypeOther(conn, file):
     headers = ['','', 'Significant Pressure Other (Area km2)', '', '', '']
 
     code = ''.join(country)
@@ -479,7 +478,7 @@ def _5_gwSignificantPressureTypeOther(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _6_swChemical_exemption_type(working_directory, conn, file):
+def _6_swChemical_exemption_type(conn, file):
     headers_topic = ['6', '', 'Surface water bodies exemptions and pressures', '', '', '']
     headers = ['','', 'Chemical exemptions (Area km2)', '', '', '']
 
@@ -524,7 +523,7 @@ def _6_swChemical_exemption_type(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _6_swEcological_exemption_type(working_directory, conn, file):
+def _6_swEcological_exemption_type(conn, file):
     headers = ['','', 'Ecological Exemption (Number)', '', '', '']
 
     code = ''.join(country)
@@ -567,7 +566,7 @@ def _6_swEcological_exemption_type(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _6_Ecological_Exemptions_Pressures(working_directory, conn, file):
+def _6_Ecological_Exemptions_Pressures(conn, file):
     headers = ['','', 'Ecological Exemptions Pressures (Number)', '', '', '']
     code = ''.join(country)
     write = csv.writer(file)
@@ -616,7 +615,7 @@ def _6_Ecological_Exemptions_Pressures(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _6_swQuality_exemption_type(working_directory, conn, file):
+def _6_swQuality_exemption_type(conn, file):
     headers = ['','', 'Quality Element Exemptions (Number)', '', '', '']
 
     code = ''.join(country)
@@ -659,7 +658,7 @@ def _6_swQuality_exemption_type(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _7_gwChemical_Exemption_Type(working_directory, conn, file):
+def _7_gwChemical_Exemption_Type(conn, file):
     headers_topic = ['7', '', 'Groundwater bodies exemptions and pressures', '', '', '']
     headers = ['', '', 'Chemical exemptions (Area km2)', '', '', '']
 
@@ -704,7 +703,7 @@ def _7_gwChemical_Exemption_Type(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _7_gwChemical_Pressure_Type(working_directory, conn, file):
+def _7_gwChemical_Pressure_Type(conn, file):
     headers = ['', '', 'Chemical Pressure Type', '', '', '']
 
     code = ''.join(country)
@@ -747,7 +746,7 @@ def _7_gwChemical_Pressure_Type(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _7_gwQuantitative_Exemption_Type(working_directory, conn, file):
+def _7_gwQuantitative_Exemption_Type(conn, file):
     headers = ['','', 'Quantitative Exemptions Pressures (Area km2)', '', '', '']
 
     code = ''.join(country)
@@ -790,7 +789,7 @@ def _7_gwQuantitative_Exemption_Type(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _8_Surface_water_bodies_Ecological_status_or_potential_group_Failing(working_directory, conn, file):
+def _8_Surface_water_bodies_Ecological_status_or_potential_group_Failing(conn, file):
     headers_topic = ['8', '', 'Number and percent of surface water bodies at good or high and failling to achieve good ecological status or potential', '', '', '']
     headers = ['', '', 'Failing to achieve good ecological status or potential', '', '', '']
 
@@ -836,7 +835,7 @@ def _8_Surface_water_bodies_Ecological_status_or_potential_group_Failing(working
         data = cur.execute(sql).fetchall()
         write.writerows(data)
 
-def _8_gwGoodorHighEcologicalStatusorPotential(working_directory, conn, file):
+def _8_gwGoodorHighEcologicalStatusorPotential(conn, file):
     headers = ['','', 'Good or high ecological status or potential', '', '', '']
 
     code = ''.join(country)
@@ -880,7 +879,7 @@ def _8_gwGoodorHighEcologicalStatusorPotential(working_directory, conn, file):
         data = cur.execute(sql).fetchall()
         write.writerows(data)
 
-def _8_Ecological_Status_Or_potential_per_surface_water_body_category(working_directory, conn, file):
+def _8_Ecological_Status_Or_potential_per_surface_water_body_category(conn, file):
     headers = ['','', 'Ecological Status Or Potential per surface water body category (Number)', '', '', '']
 
     code = ''.join(country)
@@ -924,7 +923,7 @@ def _8_Ecological_Status_Or_potential_per_surface_water_body_category(working_di
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _9_swEcologicalStatusOrPotential_Unknown_Category(working_directory, conn, file):
+def _9_swEcologicalStatusOrPotential_Unknown_Category(conn, file):
     headers = ['9', '', 'Number of surface water bodies at unknown ecological status by category', '', '', '']
 
     write = csv.writer(file)
@@ -946,7 +945,7 @@ def _9_swEcologicalStatusOrPotential_Unknown_Category(working_directory, conn, f
 
         write.writerows(data)
 
-def _10_surfaceWaterBodyChemicalStatusGood(working_directory, conn, file):
+def _10_surfaceWaterBodyChemicalStatusGood(conn, file):
     headers = ['10','', 'Chemical Status Good (2)', '', '', '']
 
     write = csv.writer(file)
@@ -968,7 +967,7 @@ def _10_surfaceWaterBodyChemicalStatusGood(working_directory, conn, file):
                       [10.surfaceWaterBodyChemicalStatusGood2022]."Chemical Status Value" = "2";''',(temp,)).fetchmany()
         write.writerows(data)
 
-def _10_Chemical_status_of_surface_water_bodies_by_category(working_directory, conn, file):
+def _10_Chemical_status_of_surface_water_bodies_by_category(conn, file):
     headers = ['','', 'Chemical status of surface water bodies by category (Number)', '', '', '']
 
     code = ''.join(country)
@@ -1014,7 +1013,7 @@ def _10_Chemical_status_of_surface_water_bodies_by_category(working_directory, c
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _10_surfaceWaterBodyChemicalStatusPoor(working_directory, conn, file):
+def _10_surfaceWaterBodyChemicalStatusPoor(conn, file):
     headers = ['','', 'Chemical Status Poor (3)', '', '', '']
 
     write = csv.writer(file)
@@ -1036,7 +1035,7 @@ def _10_surfaceWaterBodyChemicalStatusPoor(working_directory, conn, file):
                       [10.surfaceWaterBodyChemicalStatusGood2022]."Chemical Status Value" = "3";''',(temp,)).fetchmany()
         write.writerows(data)
 
-def _11_Surface_water_bodies_ecological_status_or_potential_and_chemical_status_by_country(working_directory, conn, file):
+def _11_Surface_water_bodies_ecological_status_or_potential_and_chemical_status_by_country(conn, file):
     headers_topic = ['11', '', 'Surface water bodies ecological status or potential and chemical status by country', '', '', '']
     headers = ['', '', 'Chemical Status Good (2)', '', '', '']
     code = ''.join(country)
@@ -1168,7 +1167,7 @@ def _11_Surface_water_bodies_ecological_status_or_potential_and_chemical_status_
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _11_EcologicalStatus(working_directory, conn, file):
+def _11_EcologicalStatus(conn, file):
     headers = ['','', 'Ecological Status Or Potential (1)', '', '', '']
 
     write = csv.writer(file)
@@ -1302,7 +1301,7 @@ def _11_EcologicalStatus(working_directory, conn, file):
                        [11.swEcologicalStatusOrPotential_by_Country2022].[Ecological Status or Potential Value] = "Inapplicable";''').fetchmany()
     write.writerows(data)
 
-def _12_Ecological_Status_or_Potential(working_directory, conn, file):
+def _12_Ecological_Status_or_Potential(conn, file):
     headers_topic = ['12', '', 'Surface water bodies ecological status or potential and chemical status by category', '', '', '']
     headers = ['', '', 'Ecological Status or Potential (Number)', '', '', '']
 
@@ -1348,7 +1347,7 @@ def _12_Ecological_Status_or_Potential(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _12_Chemical_Status(working_directory, conn, file):
+def _12_Chemical_Status(conn, file):
     headers = ['', '', 'Chemical Status (Number)', '', '', '']
 
     code = ''.join(country)
@@ -1394,7 +1393,7 @@ def _12_Chemical_Status(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _13_Groundwater_bodies_quantitative_status_Area_km2(working_directory, conn, file):
+def _13_Groundwater_bodies_quantitative_status_Area_km2(conn, file):
     headers = ['13', '', 'Groundwater bodies quantitative status (Area km2)', '', '', '']
 
     code = ''.join(country)
@@ -1437,7 +1436,7 @@ def _13_Groundwater_bodies_quantitative_status_Area_km2(working_directory, conn,
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _14_Groundwater_bodies_chemical_status_Area_km2(working_directory, conn, file):
+def _14_Groundwater_bodies_chemical_status_Area_km2(conn, file):
     headers = ['14', '', 'Groundwater bodies chemical status (Area km2)', '', '', '']
 
     code = ''.join(country)
@@ -1459,7 +1458,7 @@ def _14_Groundwater_bodies_chemical_status_Area_km2(working_directory, conn, fil
                            [16.gwChemical_status2022].[Chemical Status Value] = "'''+temp2+'''";''',(temp1,)).fetchall()
         write.writerows(data)
 
-def _15_Groundwater_bodies_pollutants_and_pollutants_reported_as_other(working_directory, conn, file):
+def _15_Groundwater_bodies_pollutants_and_pollutants_reported_as_other(conn, file):
     headers = ['15', '', 'Groundwater bodies pollutants and pollutants reported as other', '', '', '']
 
     code = ''.join(country)
@@ -1541,7 +1540,7 @@ def _15_Groundwater_bodies_pollutants_and_pollutants_reported_as_other(working_d
     write.writerows(data)
 
 
-def _16_Chemical_Status(working_directory, conn, file):
+def _16_Chemical_Status(conn, file):
     headers_topic = ['16', '', '% Groundwater bodies quantitative and chemical status', '', '', '']
     headers = ['', '', 'Chemical Status', '', '', '']
 
@@ -1564,7 +1563,7 @@ def _16_Chemical_Status(working_directory, conn, file):
                            [16.gwChemical_status2022].[Chemical Status Value] = "'''+temp2+'''";''',(temp1,)).fetchall()
         write.writerows(data)
 
-def _16_Quantitative_Status(working_directory, conn, file):
+def _16_Quantitative_Status(conn, file):
     headers = ['', '', 'Quantitative Status', '', '', '']
 
     code = ''.join(country)
@@ -1606,7 +1605,7 @@ def _16_Quantitative_Status(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _17_Groundwater_bodies_at_risk_of_failing_to_achieve_good_quantitative_status_and_reasons_for_failure_Area_km2(working_directory, conn, file):
+def _17_Groundwater_bodies_at_risk_of_failing_to_achieve_good_quantitative_status_and_reasons_for_failure_Area_km2(conn, file):
     headers = ['17', '', 'Groundwater bodies at risk of failing to achieve good quantitative status and reasons for failure (Area km2)', '', '', '']
 
     code = ''.join(country)
@@ -1649,7 +1648,7 @@ def _17_Groundwater_bodies_at_risk_of_failing_to_achieve_good_quantitative_statu
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _17_Quantitative_Reasons_For_Failure_Area_km2(working_directory, conn, file):
+def _17_Quantitative_Reasons_For_Failure_Area_km2(conn, file):
     headers = ['', '',
                'Quantitative Reasons For Failure (Area km2)',
                '', '', '']
@@ -1694,7 +1693,7 @@ def _17_Quantitative_Reasons_For_Failure_Area_km2(working_directory, conn, file)
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _18_Groundwater_bodies_at_risk_of_failing_to_achieve_good_chemical_status_and_reasons_for_failure_Area_km2(working_directory, conn, file):
+def _18_Groundwater_bodies_at_risk_of_failing_to_achieve_good_chemical_status_and_reasons_for_failure_Area_km2(conn, file):
     headers = ['18', '',
                'Groundwater bodies at risk of failing to achieve good chemical status and reasons for failure (Area km2)',
                '', '', '']
@@ -1739,7 +1738,7 @@ def _18_Groundwater_bodies_at_risk_of_failing_to_achieve_good_chemical_status_an
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _18_Chemical_Reasons_For_Failure_Area_km2(working_directory, conn, file):
+def _18_Chemical_Reasons_For_Failure_Area_km2(conn, file):
     headers = ['', '',
                'Chemical Reasons For Failure (Area km2)',
                '', '', '']
@@ -1784,7 +1783,7 @@ def _18_Chemical_Reasons_For_Failure_Area_km2(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _19_Groundwater_bodies_good_quantitative_expected_date_Area_km2(working_directory, conn, file):
+def _19_Groundwater_bodies_good_quantitative_expected_date_Area_km2(conn, file):
     headers = ['19', '', 'Groundwater bodies good quantitative expected date (Area km2)', '', '', '']
 
     code = ''.join(country)
@@ -1827,7 +1826,7 @@ def _19_Groundwater_bodies_good_quantitative_expected_date_Area_km2(working_dire
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _20_Groundwater_bodies_good_chemical_expected_date_Area_km2(working_directory, conn, file):
+def _20_Groundwater_bodies_good_chemical_expected_date_Area_km2(conn, file):
     headers = ['20', '', 'Groundwater bodies good chemical expected date (Area km2)', '', '', '']
 
     code = ''.join(country)
@@ -1870,7 +1869,7 @@ def _20_Groundwater_bodies_good_chemical_expected_date_Area_km2(working_director
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _21_gwQuantitativeAssessmentConfidence(working_directory, conn, file):
+def _21_gwQuantitativeAssessmentConfidence(conn, file):
     headers = ['21', '', 'Groundwater bodies quantitative status assessment confidence (Area km2)', '', '', '']
 
     code = ''.join(country)
@@ -1914,7 +1913,7 @@ def _21_gwQuantitativeAssessmentConfidence(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _22_gwChemicalAssessmentConfidence(working_directory, conn, file):
+def _22_gwChemicalAssessmentConfidence(conn, file):
     headers = ['22', '', 'Groundwater bodies chemical status assessment confidence (Area km2)', '', '', '']
 
     code = ''.join(country)
@@ -1958,7 +1957,7 @@ def _22_gwChemicalAssessmentConfidence(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _23_Number_of_groundwater_bodies_by_geological_formation(working_directory, conn, file):
+def _23_Number_of_groundwater_bodies_by_geological_formation(conn, file):
     headers = ['23', '', 'Number of groundwater bodies by geological formation', '', '', '']
 
     code = ''.join(country)
@@ -2001,7 +2000,7 @@ def _23_Number_of_groundwater_bodies_by_geological_formation(working_directory, 
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _24_Chemical_assessment_using_monitoring_grouping_or_expert_Number(working_directory, conn, file):
+def _24_Chemical_assessment_using_monitoring_grouping_or_expert_Number(conn, file):
     headers = ['24', '', 'Chemical assessment using monitoring, grouping or expert (Number)', '', '', '']
 
     code = ''.join(country)
@@ -2048,7 +2047,7 @@ def _24_Chemical_assessment_using_monitoring_grouping_or_expert_Number(working_d
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _25_Specific_pollutants_Number(working_directory, conn, file):
+def _25_Specific_pollutants_Number(conn, file):
     headers_topic = ['25', '', 'River basin specific pollutants and pollutants reported as Other', '', '', '']
     headers = ['', '', 'Specific pollutants (Number)', '', '', '']
 
@@ -2093,7 +2092,7 @@ def _25_Specific_pollutants_Number(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _25_RBSP_Other_Number_(working_directory, conn, file):
+def _25_RBSP_Other_Number_(conn, file):
     headers = ['', '', 'RBSP Other (Number)', '', '', '']
 
     code = ''.join(country)
@@ -2136,9 +2135,8 @@ def _25_RBSP_Other_Number_(working_directory, conn, file):
     data = cur.execute(sql).fetchall()
     write.writerows(data)
 
-def _26_Surface_water_bodies_biological_quality_elements_status(working_directory, conn, file):
+def _26_Surface_water_bodies_biological_quality_elements_status(conn, file):
     headers = ['26', '',  'Surface water bodies biological quality elements status (1)', '', '', '']
-    country = ['AT']
     code = ''.join(country)
     write = csv.writer(file)
     write.writerow(headers)
@@ -2274,7 +2272,6 @@ def _26_Surface_water_bodies_biological_quality_elements_status(working_director
     write.writerow(empty_line)
 
     headers = ['', '', 'Surface water bodies biological quality elements status (3.3)', '', '', '']
-    country = ['AT']
     code = ''.join(country)
     write = csv.writer(file)
     write.writerow(headers)
@@ -2319,9 +2316,9 @@ def _26_Surface_water_bodies_biological_quality_elements_status(working_director
     write.writerow(empty_line)
 
 
-def _27_swEcologicalStatusOrPotentialExpectedAchievementDate(working_directory, conn, file):
+def _27_swEcologicalStatusOrPotentialExpectedAchievementDate(conn, file):
     headers = ['27', '', 'Ecological status or potential Expected Achievement Date', '', '', '']
-    country = ['AT']
+    
     code = ''.join(country)
     write = csv.writer(file)
     write.writerow(headers)
@@ -2365,7 +2362,7 @@ def _27_swEcologicalStatusOrPotentialExpectedAchievementDate(working_directory, 
         data = cur.execute(sql).fetchall()
         write.writerows(data)
 
-def _28_swChemicalStatusExpectedAchievementDate2022(working_directory, conn, file):
+def _28_swChemicalStatusExpectedAchievementDate2022(conn, file):
     headers = ['28', '', 'Chemical Status Expected Achievement Date', '', '', '']
 
     code = ''.join(country)
@@ -2409,7 +2406,7 @@ def _28_swChemicalStatusExpectedAchievementDate2022(working_directory, conn, fil
     write.writerows(data)
 
 
-def _29_Surface_water_bodies_delineation_of_the_management_units_in_the_3rd_RBMP(working_directory, conn, file):
+def _29_Surface_water_bodies_delineation_of_the_management_units_in_the_3rd_RBMP(conn, file):
     headers = ['29', '', 'Surface water bodies: delineation of the management units in the 3rd RBMP', '', '', '']
 
     write = csv.writer(file)
@@ -2442,7 +2439,7 @@ def _29_Surface_water_bodies_delineation_of_the_management_units_in_the_3rd_RBMP
 
     write.writerows(data)
 
-def _29_Surface_water_bodies_evolution_type_by_category_3rd_Cycle(working_directory, conn, file):
+def _29_Surface_water_bodies_evolution_type_by_category_3rd_Cycle(conn, file):
     headers = ['', '', 'Surface water bodies evolution type by category 3rd Cycle (Number)', '', '', '']
 
     code = ''.join(country)
@@ -2459,7 +2456,7 @@ def _29_Surface_water_bodies_evolution_type_by_category_3rd_Cycle(working_direct
 
     write.writerows(data)
 
-def _29_Surface_water_bodies_evolution_type_by_country_3rd_Cycle(working_directory, conn, file):
+def _29_Surface_water_bodies_evolution_type_by_country_3rd_Cycle(conn, file):
     headers = ['', '', 'Surface water bodies evolution type by country 3rd Cycle (Number)', '', '', '']
 
     code = ''.join(country)
@@ -2476,7 +2473,7 @@ def _29_Surface_water_bodies_evolution_type_by_country_3rd_Cycle(working_directo
 
     write.writerows(data1)
 
-def _30_Groundwater_bodies_delineation_and_evolution_type(working_directory, conn, file):
+def _30_Groundwater_bodies_delineation_and_evolution_type(conn, file):
     headers = ['30', '', 'Groundwater bodies delineation and evolution type', '', '', '']
 
     code = ''.join(country)
@@ -2505,7 +2502,7 @@ def _30_Groundwater_bodies_delineation_and_evolution_type(working_directory, con
     write.writerows(data)
 
 
-def _30_Evolution_Type(working_directory, conn, file):
+def _30_Evolution_Type(conn, file):
     headers = ['', '', 'Evolution Type', '', '', '']
 
     code = ''.join(country)
@@ -2523,7 +2520,7 @@ def _30_Evolution_Type(working_directory, conn, file):
 
     write.writerows(data)
 
-def _31_Ecological_Monitoring(working_directory, conn, file):
+def _31_Ecological_Monitoring(conn, file):
     headers_topic = ['31', '', 'Monitoring', '', '', '']
     headers = ['', '', 'Ecological Monitoring', '', '', '']
 
@@ -2553,7 +2550,7 @@ def _31_Ecological_Monitoring(working_directory, conn, file):
             write.writerows(data)
         write.writerow(empty_line)
 
-def _31_Chemical_Monitoring(working_directory, conn, file):
+def _31_Chemical_Monitoring(conn, file):
     headers = ['', '', 'Chemical Monitoring', '', '', '']
 
     code = ''.join(country)
@@ -2583,7 +2580,7 @@ def _31_Chemical_Monitoring(working_directory, conn, file):
 
 
 
-def _31_Quantitative_Monitoring(working_directory, conn, file):
+def _31_Quantitative_Monitoring(conn, file):
     headers = ['', '', 'Quantitative Monitoring', '', '', '']
 
     code = ''.join(country)
@@ -2613,7 +2610,7 @@ def _31_Quantitative_Monitoring(working_directory, conn, file):
 
 
 
-def _32_Surface_water_bodies_broad_types(working_directory, conn, file):
+def _32_Surface_water_bodies_broad_types(conn, file):
     headers = ['32', '', 'Surface water bodies broad types (number)', '', '', '']
 
     code = ''.join(country)
