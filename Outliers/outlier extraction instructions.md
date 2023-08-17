@@ -4,9 +4,10 @@ Prerequisites:
 For main.py:<br>
 - Import sqlite3, pandas, csv and functions libraries.
 ```
-pip install sqlite3
 pip install pandas
-pip install csv
+```
+```
+pip install python-csv
 ```
 - To run this script you need to create a sqlite database with the outputs files.
 
