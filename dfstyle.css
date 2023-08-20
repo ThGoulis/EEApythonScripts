@@ -1,0 +1,31 @@
+.dataframe {
+    font-size: 11pt; 
+    font-family: Arial;
+    border-collapse: collapse; 
+    border: 1px solid silver;
+
+}
+
+.dataframe td, th {
+	padding: 5px;
+	text-align: left;
+}
+
+
+.dataframe tr:nth-child(even) {
+    background: #E0E0E0;
+}
+
+.dataframe tr:hover {
+    background: silver;
+    cursor: pointer;
+}
+
+.dataframe thead { 
+	display: table-header-group; }
+.dataframe tfoot { display: table-row-group }
+.dataframe tr { page-break-inside: avoid }
+* {
+ font-size: 100%;
+ font-family: Arial;
+}
