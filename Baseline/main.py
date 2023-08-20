@@ -20,7 +20,7 @@ def main():
     #                "LT", "LU", "LV", "MT", "NL", "NO", "PL", "PT",
     #                "RO", "SE", "SI", "SK", "UK"]
 
-    countryCode = ["FR"]
+    countryCode = ["AT"]
 
     country = ' '.join(countryCode)
     working_directory = 'C:\\Users\\Theofilos Goulis\\Documents\\BaselineAllData\\' + country + '\\'
@@ -35,6 +35,9 @@ def main():
     conn = create_connection(database)
     st = time.time()
 
+    function.gwSignificantImpactType2016(conn, countryCode, 2016, working_directory)
+    function.swChemical_by_Country_2016(conn, countryCode, 2016, working_directory)
+    function.rbdCodeNames(conn, countryCode, 2016, working_directory)
     '''Surface water'''
     function.WISE_SOW_SurfaceWaterBody_SWB_Table(conn, countryCode, 2016, working_directory)
 
@@ -98,6 +101,8 @@ def main():
 
     function.SOW_GWB_gwQuantitativeReasonsForFailure_Table(conn, countryCode, 2016, working_directory)
 
+    function.SOW_GWB_gwSignificantPressureType_NumberOfImpact_by_country(conn, countryCode, 2016, working_directory)
+
     function.SOW_GWB_gwChemicalReasonsForFailure_Table(conn, countryCode, 2016, working_directory)
 
     function.gwChemicalStatusValue_Table(conn, countryCode, 2016, working_directory)
@@ -118,6 +123,8 @@ def main():
 
     function.geologicalFormation(conn, countryCode, 2016, working_directory)
     '''swSignificant'''
+    function.swNumber_of_Impacts_by_country(conn, countryCode, 2016, working_directory)
+
     function.swSignificant_Pressure_Type_Table2016(conn, countryCode, 2016, working_directory)
 
     function.SignificantImpactType_Table2016(conn, countryCode, 2016, working_directory)
@@ -126,9 +133,9 @@ def main():
 
     function.swSignificantPressureType_Table_Other(conn, countryCode, 2016, working_directory)
     '''gwSignificant'''
-    function.SOW_GWB_gwSignificantPressureType_NumberOfImpact_by_country(conn, countryCode, 2016, working_directory)
+    function.gwSignificantImpactTypeByCountry(conn, countryCode, 2016, working_directory)
 
-    function.gwSignificantImpactType2016(conn, countryCode, 2016, working_directory)
+
 
     function.gwSignificantImpactType_Other(conn, countryCode, 2016, working_directory)
 
@@ -155,6 +162,10 @@ def main():
     function.Surface_water_bodies_QE3_assessment(conn, countryCode, 2016, working_directory)
 
     function.Surface_water_bodies_QE3_3_assessment(conn, countryCode, 2016, working_directory)
+
+    function.sw_delineation_of_the_management_units_in_the_1st_and_2nd_RBMP(conn, countryCode, 2016, working_directory)
+
+
 
     conn.close()
     et = time.time()
