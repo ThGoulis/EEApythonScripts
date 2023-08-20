@@ -2,86 +2,48 @@
 
 [![GitHub license](https://img.shields.io/badge/license-GNU-blue.svg)](https://raw.githubusercontent.com/nikoshet/spark-cherry-shuffle-service/master/LICENSE)
 
-## Table of Contents
+# Table of Contents
 
 + [About](#about)
 + [Getting Started](#getting_started)
     + [Prerequisites](#prerequisites)
-    + [Available Ansible Playbooks](#playbooks)
-    + [Configuration](#configuration)
+    + [Convert Html files to Pdf](#converthtmltopdf)
++ [Input Data](#input_data)
 + [Execution Options](#execution_options)	
-+ [Available Workloads](#available_workloads)	
-+ [Deployment](#deployment)
 + [Built With](#built_with)
 + [License](#license)
 
 ## About <a name = "about"></a>
-
+The follows scripts are created to extract and processing data from EEA Database. The scripts generate csv, html/pdf and excel files.  
 
 ## Getting Started <a name = "getting_started"></a>
 
-The following instructions will help you run this project on a Kubernetes cluster. The already implemented Ansible playbooks will help speed up this procedure.
+The following instructions will help you run this project every windows machine and get the same result as the Dashboard from EEA for Surface water bodies and Groundwater bodies. To complete the process you need to install packages to complete the process smothly.
 
-### Prerequisites <a name = "prerequisites"></a>
+# Prerequisites <a name = "prerequisites"></a>
 
-As mentioned above, you will need to install the correct versions of Python, Apache Spark, Kubernetes (kubeadm, kubelet, kubectl), Docker, Java, Scala and Ansible to all the hosts in the available cluster.
-Firstly, install Ansible to all nodes as follows:
+As mentioned above, you will need to install the correct versions of Python, Python Pandas, Python csv, Python re, Python plot, wkhtmltopdf  libraries.
+You need to download the Python version 3.9 via https://www.python.org/downloads/
+also you need to install the follow at your Pycharm IDE
 ```
-sudo apt install software-properties-common
-sudo apt-add-repository --yes --update ppa:ansible/ansible
-sudo apt install ansible
-
+pip install pandas
+pip install csv
+pip install plot
+pip install re
 ```
-In order to install the rest of the software required with Ansible, first configure the info of the `/ansible/inventory/hosts` file based on your cluster. Then execute the following:
+For the wkhtmltopdf tool you need to download the follow application from https://wkhtmltopdf.org/downloads.html
+
+# Convert Html files to Pdf <a name  = "converthtmltopdf"></a>
+Need to opent the cmd terminal and run the follow command
 ```
-
-```
-
-The above commands will configure the Kubernetes cluster. More specifically:
-- [X] Disable Swap on each node
-- [X] Add IPs to path /etc/hosts on each node
-- [X] Enable Passwordless SSH netween nodes
-- [X] Install Java, Python, Scala, Docker, kubeadm, kubelet, kubectl and enable Kubernetes Services
-- [X] Initialize Kubernetes Cluster from Master node
-- [X] Install Calico CNI Network Add-on
-- [X] Join Worker nodes with kubernetes master
-- [X] Install Python Docker module and Log into Docker Hub to store and retrieve Docker images
-- [X] Add monitoring packages for Kubernetes (i.e., prometheus-operator)
-- [X] Label Kubernetes nodes accordingly, create namespace, start Kubernetes Services for Spark and Prometheus to scrape Spark metrics
-
-### Available Ansible Playbooks <a name = "playbooks"></a>
-There have also been implemented other Ansible Playbooks in the `/ansible/playbooks` folder that do the following:
-- 
-- 
-- 
-- 
-- 
-- 
-- 
-
-### Configuration <a name = "configuration"></a>
-
-
-## Execution Options <a name = "execution_options"></a>
-To simplify the deployment of a Spark Cluster and a Spark workload as a Kubernetes Job with different parameters, the aforementioned script is used, and the flags it accepts are the following:
+    for %f in (.\*.html) do "c:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe" "%~nf.html" "%~nf.pdf"
 ```
 
-```
-## Available Workloads <a name = "available_workloads"></a>
-
-## Deployment <a name = "deployment"></a>
-
-```
-
-```
-
-Example commands with flags for the `spark-driver.sh` script to execute different workloads (need to be modified in the `/kubernetes/spark-driver/spark-driver-job.yaml` file):
-```
- 
-```
-
+# Input data <a name = "input_data"></a>
+You need to download the follow database from Wise Water Framework Directive Database:
+https://www.eea.europa.eu/en/datahub/datahubitem-view/dc1b1cdf-5fa0-4535-8c89-10cc051e00db
 ## Built With <a name = "built_with"></a>
 
 
-## License <a name = "license"></a>
+# License <a name = "license"></a>
 This project is licensed under the GNU License - see the [LICENSE](LICENSE) file for details.
