@@ -135,8 +135,6 @@ def main():
     '''gwSignificant'''
     function.gwSignificantImpactTypeByCountry(conn, countryCode, 2016, working_directory)
 
-
-
     function.gwSignificantImpactType_Other(conn, countryCode, 2016, working_directory)
 
     function.gwSignificantPressureType2016(conn, countryCode, 2016, working_directory)
@@ -164,8 +162,6 @@ def main():
     function.Surface_water_bodies_QE3_3_assessment(conn, countryCode, 2016, working_directory)
 
     function.sw_delineation_of_the_management_units_in_the_1st_and_2nd_RBMP(conn, countryCode, 2016, working_directory)
-
-
 
     conn.close()
     et = time.time()
