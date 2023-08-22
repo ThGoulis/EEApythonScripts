@@ -14,33 +14,33 @@
 + [License](#license)
 
 ## About <a name = "about"></a>
-The follows scripts are created to extract and processing data from EEA Database. The scripts generate csv, html/pdf and excel files.  
+The following scripts are created to extract and process data from the EEA Database. Their output is to be used by MS assessors during the reporting period. The scripts generate csv, html/pdf and excel files.  
 
 ## Getting Started <a name = "getting_started"></a>
 
-The following instructions will help you run this project every windows machine and get the same result as the Dashboard from EEA for Surface water bodies and Groundwater bodies. To complete the process you need to install packages to complete the process smothly.
+The following instructions will help you to reproduce the same results. The scripts have been executed in windows. We have compared the extracted results and match with the results we get from the EEA Dashboard regarding Surface water bodies and Groundwater bodies. To complete the process you need to install the following packages.
 
 # Prerequisites <a name = "prerequisites"></a>
 
 As mentioned above, you will need to install the correct versions of Python, Python Pandas, Python csv, Python re, Python plot, wkhtmltopdf  libraries.
 You need to download the Python version 3.9 via https://www.python.org/downloads/
-also you need to install the follow at your Pycharm IDE
+also you need to install the following packages at your Pycharm IDE
 ```
 pip install pandas
 pip install csv
 pip install plot
 pip install re
 ```
-For the wkhtmltopdf tool you need to download the follow application from https://wkhtmltopdf.org/downloads.html
+For the wkhtmltopdf tool you need to download the following application from https://wkhtmltopdf.org/downloads.html
 
 # Convert Html files to Pdf <a name  = "converthtmltopdf"></a>
-Need to opent the cmd terminal and run the follow command
+You need to open the cmd terminal and run the following command in the directory where the html files have been created
 ```
     for %f in (.\*.html) do "c:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe" "%~nf.html" "%~nf.pdf"
 ```
 
 # Input data <a name = "input_data"></a>
-You need to download the follow database from Wise Water Framework Directive Database:
+You need to download the following database version from Wise Water Framework Directive Database:
 https://www.eea.europa.eu/en/datahub/datahubitem-view/dc1b1cdf-5fa0-4535-8c89-10cc051e00db
 ## Built With <a name = "built_with"></a>
 
