@@ -6,7 +6,6 @@ countries = ['AT']
 countryCode = ''.join(countries)
 working_directory = 'C:\\Users\\Theofilos Goulis\\Documents\\BaselineAllData\\' + countryCode + '\\'
 
-
 graphs = {
     'rbdCodeNames2016.csv': eeafunctions.rbdCodeNames,
     '1.surfaceWaterBodyNumberAndSite2016.csv': eeafunctions._1_surfaceWaterBodyNumberAndSite2016,
@@ -73,8 +72,6 @@ graphs = {
     '46.swChemicalStatusExpectedGoodIn2015.csv': eeafunctions._46_swChemicalStatusExpectedGoodIn2015,
     '47.swChemicalStatusExpectedAchievementDate2016.csv': eeafunctions._47_swChemicalStatusExpectedAchievementDate2016
 }
-
-
 
 
 for country in countries:
