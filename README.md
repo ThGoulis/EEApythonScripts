@@ -22,14 +22,13 @@ The following instructions will help you to reproduce the same results. The scri
 
 # Prerequisites <a name = "prerequisites"></a>
 
-As mentioned above, you will need to install the correct versions of Python, Python Pandas, Python csv, Python re, Python plot, wkhtmltopdf  libraries.
+As mentioned above, you will need to install the correct versions of Python, Python Pandas, Python csv, Python plot, wkhtmltopdf  libraries.
 You need to download the Python version 3.9 via https://www.python.org/downloads/
 also you need to install the following packages at your Pycharm IDE
 ```
 pip install pandas
 pip install csv
 pip install plot
-pip install re
 ```
 For the wkhtmltopdf tool you need to download the following application from https://wkhtmltopdf.org/downloads.html
 
