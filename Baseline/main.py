@@ -1,9 +1,13 @@
 import os
 import sqlite3
 import time
+from argparse import Namespace
 from sqlite3 import Error
-import function
 
+from holoviews import output
+
+import function
+import argparse
 
 def create_connection(db_file):
     conn = None
@@ -20,17 +24,27 @@ def main():
     #                "LT", "LU", "LV", "MT", "NL", "NO", "PL", "PT",
     #                "RO", "SE", "SI", "SK", "UK"]
 
-    countryCode = ["AT"]
+    parser = argparse.ArgumentParser(description='A script to extract information from WISE database and create reports per country for the MS assesors')
+    parser.add_argument('db', help='Path to SQLite DB file')
+    parser.add_argument('country', help='Country Code to extract information from')
+    parser.add_argument('outputdir', help='The directory to extract the CSVs to. It must NOT end with a backslash character \\')
+    args: Namespace = parser.parse_args()
+
+
+    #countryCode = ["AT"]
+    countryCode = [args.country]
 
     country = ' '.join(countryCode)
-    working_directory = 'C:\\Users\\Theofilos Goulis\\Documents\\BaselineAllData\\' + country + '\\'
+    output_dir = args.outputdir #.strip("\\")
+    print(output_dir)
+    working_directory = output_dir + '\\' + country + '\\'
 
     if not os.path.isdir(working_directory):
         os.makedirs(working_directory)
         print("Directory %s was created." % working_directory)
 
-    database = r"C:\Users\Theofilos Goulis\Downloads\wise-wfd-database_v01_r04/WISE_SOW.sqlite"
-
+    #database = r"C:\Users\cslab\Downloads\WISE_SOW.sqlite"
+    database = args.db
     # create a database connection
     conn = create_connection(database)
     st = time.time()
