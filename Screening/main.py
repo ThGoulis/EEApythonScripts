@@ -1,7 +1,6 @@
 from argparse import Namespace
 import sqlite3
 import time
-import progressbar
 from sqlite3 import Error
 import functions
 import os
