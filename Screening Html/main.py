@@ -1,10 +1,29 @@
 import pandas as pd
 import eeafunctions
+import os
+import argparse
+import pdfkit
+import time
+from argparse import Namespace
 
-countries = ['HR']
-country = ''.join(countries)
-working_directory = 'C:\\Users\\Theofilos Goulis\\Documents\\Screening' + country + '\\3rdReportCsv' + country + '\\'
 
+parser = argparse.ArgumentParser(description='A script to extract information from WISE database and create reports per country for the MS assesors')
+parser.add_argument('csvpath', help='The directory of saving csv files')
+parser.add_argument('country', help='Country Code to extract information from')
+parser.add_argument('outputpath', help='The directory to extract the html and css file to. It must NOT end with a backslash character \\')
+args: Namespace = parser.parse_args()
+
+countryCode = [args.country]
+country = ''.join(countryCode)
+
+csv_path = args.csvpath
+
+output_path = args.outputpath
+working_directory = output_path + '\\' + country + '\\'
+
+if not os.path.isdir(working_directory):
+    os.makedirs(working_directory)
+    print("Directory %s was created." % working_directory)
 
 graphs = {
     # '''Csv to Html'''
@@ -72,48 +91,91 @@ graphs = {
     '129.1.ecologicalMonitoring2022.csv': eeafunctions._29_1_EcologicalMonitoring_Map_data,
     '129.2.chemicalMonitoring2022.csv': eeafunctions._29_2_ChemicalMonitoring_Map_data,
     '129.3.quantitativeMonitoring2022.csv': eeafunctions._29_3_QuantitativeMonitoring_Map_data,
-    'NewDash.6.surfaceWaterBodyTypeCode2022.csv': eeafunctions._6_surfaceWaterBodyTypeCode,
-
+    'NewDash.6.surfaceWaterBodyTypeCode2022.csv': eeafunctions._6_surfaceWaterBodyTypeCode
 }
 
-for country in countries:
-    f = open(working_directory + 'output\\' + country + '.html', 'w', encoding=" iso-8859-1")
-    html_string = '<html><head><meta charset="UTF-8"><title>'
-    html_string += country
-    html_string += '''</title></head>
-       <link rel="stylesheet" type="text/css" href="dfstyle.css"/>
-       <body>
-       <h3>MS Baselines Country: '''
-    html_string += country
-    html_string += '''</h3><table border="1" class="dataframe">
-              <thead>
-                <tr style="text-align: right;"><th>Abbreviation</th><th>Description</th></tr></thead>
-                <tbody>
-                <tr><td colspan="2" align="center" font size="+1"><b>Surface water bodies</b></td></tr>
-                <tr><td>RW</td><td>River water body</td></tr>
-                <tr><td>LW</td><td>Lake water body</td></tr>
-                <tr><td>TW</td><td>Transitional water body</td></tr>
-                <tr><td>CW</td><td>Coastal water body</td></tr>
-                <tr><td>TeW</td><td>Territorial water body</td></tr>
-                <tr><td colspan="2" align="center" font size="+1"><b>Surface water bodies ecological status</b></td></tr>
-                <tr><td>1</td><td>High</td></tr>
-                <tr><td>2</td><td>Good</td></tr>
-                <tr><td>3</td><td>Moderate</td></tr>
-                <tr><td>4</td><td>Poor</td></tr>
-                <tr><td>5</td><td>Bad</td></tr>
-                <tr><td colspan="2" align="center" font size="+1"><b>Surface water bodies chemical status</b></td></tr>
-                <tr><td>2</td><td>Good</td></tr>
-                <tr><td>3</td><td>Poor</td></tr>
-                <tr><td colspan="2" align="center" font size="+1"><b>Groundwater bodies quantitative and chemical status</b></td></tr>
-                <tr><td>2</td><td>Good</td></tr>
-                <tr><td>3</td><td>Poor</td></tr>
-              </tbody></table><br>
-     '''
-    f.write(html_string)
+f = open(working_directory + country + '.html', 'w', encoding=" iso-8859-1")
+html_string = '<html><head><meta charset="UTF-8"><title>'
+html_string += country
+html_string += '''</title></head>
+   <link rel="stylesheet" type="text/css" href="dfstyle.css"/>
+   <body>
+   <h3>MS Baselines Country: '''
+html_string += country
+html_string += '''</h3><table border="1" class="dataframe">
+          <thead>
+            <tr style="text-align: right;"><th>Abbreviation</th><th>Description</th></tr></thead>
+            <tbody>
+            <tr><td colspan="2" align="center" font size="+1"><b>Surface water bodies</b></td></tr>
+            <tr><td>RW</td><td>River water body</td></tr>
+            <tr><td>LW</td><td>Lake water body</td></tr>
+            <tr><td>TW</td><td>Transitional water body</td></tr>
+            <tr><td>CW</td><td>Coastal water body</td></tr>
+            <tr><td>TeW</td><td>Territorial water body</td></tr>
+            <tr><td colspan="2" align="center" font size="+1"><b>Surface water bodies ecological status</b></td></tr>
+            <tr><td>1</td><td>High</td></tr>
+            <tr><td>2</td><td>Good</td></tr>
+            <tr><td>3</td><td>Moderate</td></tr>
+            <tr><td>4</td><td>Poor</td></tr>
+            <tr><td>5</td><td>Bad</td></tr>
+            <tr><td colspan="2" align="center" font size="+1"><b>Surface water bodies chemical status</b></td></tr>
+            <tr><td>2</td><td>Good</td></tr>
+            <tr><td>3</td><td>Poor</td></tr>
+            <tr><td colspan="2" align="center" font size="+1"><b>Groundwater bodies quantitative and chemical status</b></td></tr>
+            <tr><td>2</td><td>Good</td></tr>
+            <tr><td>3</td><td>Poor</td></tr>
+          </tbody></table><br>
+ '''
+f.write(html_string)
 
-    for csv in graphs:
-        print(csv)
-        currentdf = pd.read_csv(working_directory + csv, encoding="ISO-8859-1")
-        graphs[csv](currentdf, country, f)
+print("Generating html file...")
+for csv in graphs:
+    currentdf = pd.read_csv(csv_path + '\\' + csv, encoding="ISO-8859-1")
+    graphs[csv](currentdf, country, f, working_directory + country)
 
-    f.write('</body></html>')
+f.write('</body></html>')
+
+css_file = '''
+.dataframe {
+    font-size: 11pt; 
+    font-family: Arial;
+    border-collapse: collapse; 
+    border: 1px solid silver;
+    
+    }
+    
+.dataframe td, th {
+    padding: 5px;
+    text-align: left;
+}
+
+
+.dataframe tr:nth-child(even) {
+    background: #E0E0E0;
+}
+
+.dataframe tr:hover {
+    background: silver;
+    cursor: pointer;
+}
+
+.dataframe thead { 
+    display: table-header-group; }
+.dataframe tfoot { display: table-row-group }
+.dataframe tr { page-break-inside: avoid }
+* {
+ font-size: 100%;
+ font-family: Arial;
+}'''
+
+print("Creating CSS file...")
+
+css = open(working_directory + 'dfstyle.css', 'w', encoding="UTF-8")
+css.write(css_file)
+
+# print("Generate PDF report...")
+#
+# config = pdfkit.configuration(wkhtmltopdf=r"C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe")
+# pdfkit.from_file(working_directory + country + '.html', working_directory + country + '.pdf', configuration=config)
+
+print("Script completed.")
