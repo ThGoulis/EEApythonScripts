@@ -1,13 +1,7 @@
 import matplotlib.pyplot as plt
-import re
-
-countryCode1 = ['AT']
-countryCode = ''.join(countryCode1)
-working_directory = 'C:\\Users\\Theofilos Goulis\\Documents\\Screening' + countryCode + '\\3rdReportCsv' + countryCode + '\\'
-imagepath = 'C:\\Users\\Theofilos Goulis\\Documents\\Screening' + countryCode + '\\3rdReportCsv' + countryCode + '\\output\\'
 
 
-def rbdCodeNames(df, country, outfile):
+def rbdCodeNames(df, country, outfile, imagepath):
     html_string = '''<h3>RBD Code and names </h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -15,7 +9,7 @@ def rbdCodeNames(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>'))
     
     
-def _1_swNumberAndSize2022(df, country, outfile):
+def _1_swNumberAndSize2022(df, country, outfile, imagepath):
     html_string = '''<h3>1. Number and size of surface water bodies </h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -33,7 +27,7 @@ def _1_swNumberAndSize2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _2_gwNumberAndSize2022(df, country, outfile):
+def _2_gwNumberAndSize2022(df, country, outfile, imagepath):
     html_string = '''<h3>2. Number and size of groundwater bodies</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -50,7 +44,7 @@ def _2_gwNumberAndSize2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _3_surfaceWaterBodyCategory2022(df, country, outfile):
+def _3_surfaceWaterBodyCategory2022(df, country, outfile, imagepath):
     html_string = '''<h3>3. Number of surface water bodies by category and type</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -72,15 +66,14 @@ def _3_surfaceWaterBodyCategory2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _4_swSignificantPressureType_NumberOfImpact_by_country2022(df, country, outfile):
+def _4_swSignificantPressureType_NumberOfImpact_by_country2022(df, country, outfile, imagepath):
     html_string = '''<h3>4. Surface water bodies significant pressures and impacts</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
         html_string += temp.to_html(index=False)
         temp.plot(x="Country", y=["Impact 0 - Number", "Impact 1 - Number", 'Impact 2 - Number', 'Impact 3 - Number', 'Impact 4+ - Number'], kind='bar',
-                  rot=0, label=["0","1","2","3","4+"] )
-        # temp[['Country']].plot.bar("Country",y=["Impact 0 - Area (km^2)", "Impact 1 - Area(km^2)", 'Impact 2 - Area (km^2)', 'Impact 3 - Area (km^2)', 'Impact 4+ - Area (km^2)']
-        #                            , rot=0, color="#653700")
+                  rot=0, label=["0", "1", "2", "3", "4+"])
+
         plt.title('Surface water bodies\nNumber of impacts')
         plt.legend(title="Number of Impacts")
         plt.xlabel('Number of impacts')
@@ -93,7 +86,7 @@ def _4_swSignificantPressureType_NumberOfImpact_by_country2022(df, country, outf
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _NewDash_8_swNumber_of_impacts_by_country_by_category2022(df, country, outfile):
+def _NewDash_8_swNumber_of_impacts_by_country_by_category2022(df, country, outfile, imagepath):
     html_string = '''<h3>8. Surface water bodies significant pressures and impacts</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         categories = ["RW", "LW", "TW", "CW", "TeW"]
@@ -102,7 +95,7 @@ def _NewDash_8_swNumber_of_impacts_by_country_by_category2022(df, country, outfi
                 temp = df.loc[(df['Country'] == country) & (df['Category'] == categ)]
                 html_string += temp.to_html(index=False)
                 temp.plot(x="Country", y=["Impact 0 - Number", "Impact 1 - Number", 'Impact 2 - Number', 'Impact 3 - Number', 'Impact 4+ - Number'], kind='bar',
-                          rot=0, label=["0","1","2","3","4+"] )
+                          rot=0, label=["0", "1", "2", "3", "4+"])
                 plt.title('Surface water bodies\nNumber of impacts by category - '+categ)
                 plt.legend(title="Number of Impacts")
                 plt.xlabel('Number of impacts')
@@ -115,7 +108,7 @@ def _NewDash_8_swNumber_of_impacts_by_country_by_category2022(df, country, outfi
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _4_SOW_SWB_SWB_swSignificantImpactType_Table2022(df, country, outfile):
+def _4_SOW_SWB_SWB_swSignificantImpactType_Table2022(df, country, outfile, imagepath):
     html_string = '''<br>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -133,7 +126,7 @@ def _4_SOW_SWB_SWB_swSignificantImpactType_Table2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _4_SOW_SWB_SWB_swSignificantImpactType_Table_Other2022(df, country, outfile):
+def _4_SOW_SWB_SWB_swSignificantImpactType_Table_Other2022(df, country, outfile, imagepath):
     html_string = '''<br>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -141,7 +134,7 @@ def _4_SOW_SWB_SWB_swSignificantImpactType_Table_Other2022(df, country, outfile)
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _4_SOW_SWB_SWB_swSignificant_Pressure_Type_Table2022(df, country, outfile):
+def _4_SOW_SWB_SWB_swSignificant_Pressure_Type_Table2022(df, country, outfile, imagepath):
     html_string = '''<br>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -149,16 +142,16 @@ def _4_SOW_SWB_SWB_swSignificant_Pressure_Type_Table2022(df, country, outfile):
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _4_SOW_SWB_SWB_swSignificantPressureType_Table_Other2022(df, country, outfile):
+def _4_SOW_SWB_SWB_swSignificantPressureType_Table_Other2022(df, country, outfile, imagepath):
     df.dropna()
     values = df.loc[(df['Country'] == country)]
     if not values.empty:
         html_string = '''<br>'''
         html_string += values.to_html(index=False)
-        outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
+        outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>'))
+# .replace('.0', '')
 
-
-def _5_SOW_GWB_gwSignificantPressureType_NumberOfImpact_by_country2022(df, country, outfile):
+def _5_SOW_GWB_gwSignificantPressureType_NumberOfImpact_by_country2022(df, country, outfile, imagepath):
     html_string = '''<h3>5. Groundwater bodies significant pressures and impacts</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -177,7 +170,7 @@ def _5_SOW_GWB_gwSignificantPressureType_NumberOfImpact_by_country2022(df, count
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _5_gwSignificant_impacts2022(df, country, outfile):
+def _5_gwSignificant_impacts2022(df, country, outfile, imagepath):
     html_string = '''<br>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -202,7 +195,7 @@ def _5_gwSignificant_impacts2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _5_gwSignificantImpactType_Other(df, country, outfile):
+def _5_gwSignificantImpactType_Other(df, country, outfile, imagepath):
     if not df.loc[(df['Country'] == country)].empty:
         html_string = '''<br>'''
         temp = df.loc[(df['Country'] == country)]
@@ -228,7 +221,7 @@ def _5_gwSignificantImpactType_Other(df, country, outfile):
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _5_SOW_GWB_gwSignificantPressureType_OtherTable2022(df, country, outfile):
+def _5_SOW_GWB_gwSignificantPressureType_OtherTable2022(df, country, outfile, imagepath):
     if not df.loc[(df['Country'] == country)].empty:
         html_string = '''<br>'''
         temp = df.loc[(df['Country'] == country)]
@@ -236,7 +229,7 @@ def _5_SOW_GWB_gwSignificantPressureType_OtherTable2022(df, country, outfile):
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _5_gwSignificantPressureType2022(df, country, outfile):
+def _5_gwSignificantPressureType2022(df, country, outfile, imagepath):
     if not df.loc[(df['Country'] == country)].empty:
         html_string = '''<br>'''
         temp = df.loc[(df['Country'] == country)]
@@ -262,7 +255,7 @@ def _5_gwSignificantPressureType2022(df, country, outfile):
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _6_SWB_Chemical_exemption_type2022(df, country, outfile):
+def _6_SWB_Chemical_exemption_type2022(df, country, outfile, imagepath):
     html_string = '''<h3>6. Surface water bodies exemptions and pressures</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -280,7 +273,7 @@ def _6_SWB_Chemical_exemption_type2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _6_Surface_water_bodies_Ecological_exemptions_Type2022(df, country, outfile):
+def _6_Surface_water_bodies_Ecological_exemptions_Type2022(df, country, outfile, imagepath):
     html_string = '''<br>
             '''
     if not df.loc[(df['Country'] == country)].empty:
@@ -307,7 +300,7 @@ def _6_Surface_water_bodies_Ecological_exemptions_Type2022(df, country, outfile)
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _6_Surface_water_bodies_Ecological_exemptions_and_pressures2022(df, country, outfile):
+def _6_Surface_water_bodies_Ecological_exemptions_and_pressures2022(df, country, outfile, imagepath):
     if not df.loc[(df['Country'] == country)].empty:
         html_string = '''<br>'''
         temp = df.loc[(df['Country'] == country)]
@@ -315,7 +308,7 @@ def _6_Surface_water_bodies_Ecological_exemptions_and_pressures2022(df, country,
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _6_Surface_water_bodies_Quality_element_exemptions_Type2022(df, country, outfile):
+def _6_Surface_water_bodies_Quality_element_exemptions_Type2022(df, country, outfile, imagepath):
     EETGList = df['Quality Element Exemption Type Group'].unique().tolist()
     if not df.loc[(df['Country'] == country)].empty:
         html_string = '''<br>'''
@@ -345,7 +338,7 @@ def _6_Surface_water_bodies_Quality_element_exemptions_Type2022(df, country, out
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _7_Groundwater_bodies_Chemical_Exemption_Type2022(df, country, outfile):
+def _7_Groundwater_bodies_Chemical_Exemption_Type2022(df, country, outfile, imagepath):
     html_string = '''<h3>7. Groundwater bodies exemptions and pressures</h3>'''
 
     if not df.loc[(df['Country'] == country)].empty:
@@ -368,7 +361,7 @@ def _7_Groundwater_bodies_Chemical_Exemption_Type2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>'))
 
 
-def _7_Groundwater_bodies_Quantitative_Exemption_Type2022(df, country, outfile):
+def _7_Groundwater_bodies_Quantitative_Exemption_Type2022(df, country, outfile, imagepath):
     EETGList = df['Quantitative Exemption Type Group'].unique().tolist()
     EETList = df['Quantitative Exemption Type'].unique().tolist()
     html_string = '''<br>'''
@@ -391,7 +384,7 @@ def _7_Groundwater_bodies_Quantitative_Exemption_Type2022(df, country, outfile):
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _7_Groundwater_bodies_Quantitative_exemptions_and_pressures2022(df, country, outfile):
+def _7_Groundwater_bodies_Quantitative_exemptions_and_pressures2022(df, country, outfile, imagepath):
     html_string = '''<br>'''
 
     if not df.loc[(df['Country'] == country)].empty:
@@ -400,7 +393,7 @@ def _7_Groundwater_bodies_Quantitative_exemptions_and_pressures2022(df, country,
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _7_gwChemicalExcemptionPressures2022 (df, country, outfile):
+def _7_gwChemicalExcemptionPressures2022 (df, country, outfile, imagepath):
     html_string = '''<br>
     '''
     if not df.loc[(df['Country'] == country)].empty:
@@ -409,7 +402,7 @@ def _7_gwChemicalExcemptionPressures2022 (df, country, outfile):
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _8_Surface_water_bodies_Ecological_status_or_potential_group_Failing(df, country, outfile):
+def _8_Surface_water_bodies_Ecological_status_or_potential_group_Failing(df, country, outfile, imagepath):
     html_string = '''<h3>8. Number and percent of surface water bodies at good or high and failling to achieve good ecological status or potential</h3>
     <p>Number and percent of surface water bodies failing to achieve good ecological status or potential</p>
     '''
@@ -429,7 +422,7 @@ def _8_Surface_water_bodies_Ecological_status_or_potential_group_Failing(df, cou
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _8_Surface_water_bodies_Ecological_status_or_potential_group_Good_High(df, country, outfile):
+def _8_Surface_water_bodies_Ecological_status_or_potential_group_Good_High(df, country, outfile, imagepath):
     html_string = '''<br>
     <p>Number and percent of surface water bodies at good or high ecological status or potential</p>
     '''
@@ -448,7 +441,7 @@ def _8_Surface_water_bodies_Ecological_status_or_potential_group_Good_High(df, c
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _8_swEcologicalStatusOrPotential_RW_LW_Category2ndRBMP2022(df, country, outfile):
+def _8_swEcologicalStatusOrPotential_RW_LW_Category2ndRBMP2022(df, country, outfile, imagepath):
     categories = ["RW", "LW", "TW", "CW", "TeW"]
     ESOPV = df['Ecological Status Or Potential Value'].unique().tolist()
     if not df.loc[(df['Country'] == country) ].empty:
@@ -472,7 +465,7 @@ def _8_swEcologicalStatusOrPotential_RW_LW_Category2ndRBMP2022(df, country, outf
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _9_swEcologicalStatusOrPotential_Unknown_Category2ndRBMP2022(df, country, outfile):
+def _9_swEcologicalStatusOrPotential_Unknown_Category2ndRBMP2022(df, country, outfile, imagepath):
     html_string = '''<h3>9. Number of surface water bodies at unknown ecological status by category</h3>
     '''
     categories = ["RW", "LW", "TW", "CW"]
@@ -494,7 +487,7 @@ def _9_swEcologicalStatusOrPotential_Unknown_Category2ndRBMP2022(df, country, ou
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>'))
 
 
-def _10_SurfaceWaterBody_SWB_ChemicalStatus_Table_by_Category2022(df, country, outfile):
+def _10_SurfaceWaterBody_SWB_ChemicalStatus_Table_by_Category2022(df, country, outfile, imagepath):
     categories = df['Surface Water Body Category'].unique().tolist()
     html_string = '''<h3>10. Chemical status of surface water bodies by category</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
@@ -513,7 +506,7 @@ def _10_SurfaceWaterBody_SWB_ChemicalStatus_Table_by_Category2022(df, country, o
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>'))
 
 
-def _10_surfaceWaterBodyChemicalStatusGood2022(df, country, outfile):
+def _10_surfaceWaterBodyChemicalStatusGood2022(df, country, outfile, imagepath):
     html_string = '''<br>
         '''
     if not df.loc[(df['Country'] == country)].empty:
@@ -531,7 +524,7 @@ def _10_surfaceWaterBodyChemicalStatusGood2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _11_swChemical_by_Country(df, country, outfile):
+def _11_swChemical_by_Country(df, country, outfile, imagepath):
     html_string = '''<h3>11. Surface water bodies ecological status or potential and chemical status by country</h3>
     '''
     if not df.loc[(df['Country'] == country)].empty:
@@ -550,7 +543,7 @@ def _11_swChemical_by_Country(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _11_swEcologicalStatusOrPotential_by_Country (df, country, outfile):
+def _11_swEcologicalStatusOrPotential_by_Country (df, country, outfile, imagepath):
     if not df.loc[(df['Country'] == country)].empty:
         html_string = '''<br>'''
         temp = df.loc[(df['Country'] == country)]
@@ -568,10 +561,10 @@ def _11_swEcologicalStatusOrPotential_by_Country (df, country, outfile):
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _12_swEcologicalStatusOrPotentialValue_swChemicalStatusValue_by_Country_by_Categ2022(df, country, outfile):
+def _12_swEcologicalStatusOrPotentialValue_swChemicalStatusValue_by_Country_by_Categ2022(df, country, outfile, imagepath):
     html_string = '''<h3>12. Surface water bodies ecological status or potential and chemical status by category</h3>
     '''
-    categories = ["RW", "LW", "TW", "CW","TeW"]
+    categories = ["RW", "LW", "TW", "CW", "TeW"]
     if not df.loc[(df['Country'] == country)].empty:
         for categ in categories:
             if not df.loc[(df['Country'] == country) & (df['Categories'] == categ)].empty:
@@ -589,7 +582,7 @@ def _12_swEcologicalStatusOrPotentialValue_swChemicalStatusValue_by_Country_by_C
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _12_swChemicalStatusValue_by_Country_by_Categ2022(df, country, outfile):
+def _12_swChemicalStatusValue_by_Country_by_Categ2022(df, country, outfile, imagepath):
     html_string = '''<br>'''
     categories = ["RW", "LW", "TW", "CW", "TeW"]
     if not df.loc[(df['Country'] == country)].empty:
@@ -609,7 +602,7 @@ def _12_swChemicalStatusValue_by_Country_by_Categ2022(df, country, outfile):
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _13_GroundWaterBodyCategoryQuantitative_status2022(df, country, outfile):
+def _13_GroundWaterBodyCategoryQuantitative_status2022(df, country, outfile, imagepath):
     html_string = '''<h3>13. Groundwater bodies quantitative status</h3>
     '''
     if not df.loc[(df['Country'] == country)].empty:
@@ -627,7 +620,7 @@ def _13_GroundWaterBodyCategoryQuantitative_status2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _14_GroundWaterBodyCategoryChemical_status2022(df, country, outfile):
+def _14_GroundWaterBodyCategoryChemical_status2022(df, country, outfile, imagepath):
     df.dropna()
     html_string = '''<h3>14. Groundwater bodies chemical status</h3>
     '''
@@ -646,7 +639,7 @@ def _14_GroundWaterBodyCategoryChemical_status2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _15_SOW_GWB_gwPollutant_Table2022(df, country, outfile):
+def _15_SOW_GWB_gwPollutant_Table2022(df, country, outfile, imagepath):
     html_string = '''<h3>15. Groundwater bodies pollutants and pollutants reported as 'other'</h3>
         '''
     if not df.loc[(df['Country'] == country)].empty:
@@ -655,7 +648,7 @@ def _15_SOW_GWB_gwPollutant_Table2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _15_SOW_GWB_gwPollutant_Table2022_Other(df, country, outfile):
+def _15_SOW_GWB_gwPollutant_Table2022_Other(df, country, outfile, imagepath):
     df.dropna()
     if not df.loc[(df['Country'] == country)].empty:
         html_string = '''<br>
@@ -665,7 +658,7 @@ def _15_SOW_GWB_gwPollutant_Table2022_Other(df, country, outfile):
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>'))
 
 
-def _16_GroundWaterBodyCategoryChemical_status2022(df, country, outfile):
+def _16_GroundWaterBodyCategoryChemical_status2022(df, country, outfile, imagepath):
     html_string = '''<h3>16. % Groundwater bodies quantitative and chemical status</h3>
     '''
     if not df.loc[(df['Country'] == country)].empty:
@@ -683,7 +676,7 @@ def _16_GroundWaterBodyCategoryChemical_status2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _16_gwQuantitativeStatusValue_Percent_Country_2022(df, country, outfile):
+def _16_gwQuantitativeStatusValue_Percent_Country_2022(df, country, outfile, imagepath):
     if not df.loc[(df['Country'] == country)].empty:
         html_string = '''<br>'''
         temp = df.loc[(df['Country'] == country)]
@@ -700,7 +693,7 @@ def _16_gwQuantitativeStatusValue_Percent_Country_2022(df, country, outfile):
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _17_Groundwater_bodies_At_risk_of_failing_to_achieve_good_quantitative_status2022(df, country, outfile):
+def _17_Groundwater_bodies_At_risk_of_failing_to_achieve_good_quantitative_status2022(df, country, outfile, imagepath):
     html_string = '''<h3>17. Groundwater bodies at risk of failing to achieve good quantitative status and reasons for failure</h3>
     '''
     if not df.loc[(df['Country'] == country)].empty:
@@ -718,7 +711,7 @@ def _17_Groundwater_bodies_At_risk_of_failing_to_achieve_good_quantitative_statu
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _17_SOW_GWB_gwQuantitativeReasonsForFailure_Table2022(df, country, outfile):
+def _17_SOW_GWB_gwQuantitativeReasonsForFailure_Table2022(df, country, outfile, imagepath):
     if not df.loc[(df['Country'] == country)].empty:
         html_string = '''<br>
         '''
@@ -745,7 +738,7 @@ def _17_SOW_GWB_gwQuantitativeReasonsForFailure_Table2022(df, country, outfile):
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _18_SOW_GWB_gwChemicalReasonsForFailure_Table2022(df, country, outfile):
+def _18_SOW_GWB_gwChemicalReasonsForFailure_Table2022(df, country, outfile, imagepath):
     html_string = '''<h3>18. Groundwater bodies at risk of failing to achieve good chemical status and reasons for failure</h3>'''
 
     if not df.loc[(df['Country'] == country)].empty:
@@ -763,7 +756,7 @@ def _18_SOW_GWB_gwChemicalReasonsForFailure_Table2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _18_gwChemicalStatusValue_Table2022(df, country, outfile):
+def _18_gwChemicalStatusValue_Table2022(df, country, outfile, imagepath):
     html_string = '''<br>
     '''
     if not df.loc[(df['Country'] == country)].empty:
@@ -781,7 +774,7 @@ def _18_gwChemicalStatusValue_Table2022(df, country, outfile):
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _19_gwQuantitativeStatusExpectedAchievementDate2022(df, country, outfile):
+def _19_gwQuantitativeStatusExpectedAchievementDate2022(df, country, outfile, imagepath):
     html_string = '''<h3>19. Groundwater bodies good quantitative expected date</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -806,7 +799,7 @@ def _19_gwQuantitativeStatusExpectedAchievementDate2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _20_gwChemicalStatusExpectedAchievementDate2022(df, country, outfile):
+def _20_gwChemicalStatusExpectedAchievementDate2022(df, country, outfile, imagepath):
     html_string = '''<h3>20. Groundwater bodies good chemical expected date</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -828,10 +821,10 @@ def _20_gwChemicalStatusExpectedAchievementDate2022(df, country, outfile):
         figfilename = imagepath + '32.gwChemicalStatusExpectedAchievementDate2016' + country + '.png'
         plt.savefig(figfilename, bbox_inches='tight')
         html_string += '<br><img src = "' + figfilename + '"><br>'
-    outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
+    outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>'))
+# .replace('.0', '')
 
-
-def _21_gwQuantitativeAssessmentConfidence2022(df, country, outfile):
+def _21_gwQuantitativeAssessmentConfidence2022(df, country, outfile, imagepath):
     html_string = '''<h3>21. Groundwater bodies quantitative status assessment confidence</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -856,7 +849,7 @@ def _21_gwQuantitativeAssessmentConfidence2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _22_gwChemicalAssessmentConfidence2022(df, country, outfile):
+def _22_gwChemicalAssessmentConfidence2022(df, country, outfile, imagepath):
     html_string = '''<h3>22. Groundwater bodies chemical status assessment confidence</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -881,7 +874,7 @@ def _22_gwChemicalAssessmentConfidence2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _23_GWB_geologicalFormation2022(df, country, outfile):
+def _23_GWB_geologicalFormation2022(df, country, outfile, imagepath):
     html_string = '''<h3>23. Number of groundwater bodies by geological formation</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -906,7 +899,7 @@ def _23_GWB_geologicalFormation2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _24_swb_Chemical_assessment_using_monitoring_grouping_or_expert_judgement2022 (df, country, outfile):
+def _24_swb_Chemical_assessment_using_monitoring_grouping_or_expert_judgement2022 (df, country, outfile, imagepath):
     CAC = df['Chemical Assessment Confidence'].unique().tolist()
 
     html_string = '<h3>24. Chemical assessment using monitoring, grouping or expert</h3>'
@@ -936,7 +929,7 @@ def _24_swb_Chemical_assessment_using_monitoring_grouping_or_expert_judgement202
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>'))
 
 
-def _25_swRBsPollutants(df, country, outfile):
+def _25_swRBsPollutants(df, country, outfile, imagepath):
     html_string = '''<h3>25. River basin specific pollutants and pollutants reported as 'Other'</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
 
@@ -945,7 +938,7 @@ def _25_swRBsPollutants(df, country, outfile):
         outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _25_Surface_water_bodies_River_basin_specific_pollutants_reported_as_Other2016(df, country, outfile):
+def _25_Surface_water_bodies_River_basin_specific_pollutants_reported_as_Other2016(df, country, outfile, imagepath):
     html_string = '''<br>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -953,7 +946,7 @@ def _25_Surface_water_bodies_River_basin_specific_pollutants_reported_as_Other20
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _26_Surface_water_bodies_QE1_assessment2022(df, country, outfile):
+def _26_Surface_water_bodies_QE1_assessment2022(df, country, outfile, imagepath):
     html_string = '<h3>26. Surface water bodies biological quality elements status</h3>'
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -971,7 +964,7 @@ def _26_Surface_water_bodies_QE1_assessment2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _26_Surface_water_bodies_QE2_assessment2016(df, country, outfile):
+def _26_Surface_water_bodies_QE2_assessment2016(df, country, outfile, imagepath):
     html_string = '<br>'
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -989,7 +982,7 @@ def _26_Surface_water_bodies_QE2_assessment2016(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _26_Surface_water_bodies_QE3_assessment2016(df, country, outfile):
+def _26_Surface_water_bodies_QE3_assessment2016(df, country, outfile, imagepath):
     html_string = '<br>'
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -1007,7 +1000,7 @@ def _26_Surface_water_bodies_QE3_assessment2016(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _26_Surface_water_bodies_QE3_3_assessment2016(df, country, outfile):
+def _26_Surface_water_bodies_QE3_3_assessment2016(df, country, outfile, imagepath):
     html_string = '<br>'
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -1025,7 +1018,7 @@ def _26_Surface_water_bodies_QE3_3_assessment2016(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _27_swEcologicalStatusOrPotentialExpectedAchievementDate2022(df, country, outfile):
+def _27_swEcologicalStatusOrPotentialExpectedAchievementDate2022(df, country, outfile, imagepath):
     html_string = '''<h3>27. Surface water bodies good ecological status expected date</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -1048,7 +1041,7 @@ def _27_swEcologicalStatusOrPotentialExpectedAchievementDate2022(df, country, ou
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _28_swChemicalStatusExpectedAchievementDate2022(df, country, outfile):
+def _28_swChemicalStatusExpectedAchievementDate2022(df, country, outfile, imagepath):
     html_string = '''<h3>28. Surface water bodies good chemical status expected date</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -1071,7 +1064,7 @@ def _28_swChemicalStatusExpectedAchievementDate2022(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _9_1_sw_delineation_of_the_management_units_in_the_1st_and_2nd_RBMP_Unchanged_2022(df, country, outfile):
+def _9_1_sw_delineation_of_the_management_units_in_the_1st_and_2nd_RBMP_Unchanged_2022(df, country, outfile, imagepath):
     html_string = '''<h3>29. Surface water bodies: delineation of the management units in the 3<sup STYLE="font-size:75%">rd</sup> RBMP</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         html_string += '''<br>'''
@@ -1080,7 +1073,7 @@ def _9_1_sw_delineation_of_the_management_units_in_the_1st_and_2nd_RBMP_Unchange
     outfile.write(html_string)
 
 
-def _9_1_sw_delineation_of_the_management_units_in_the_1st_and_2nd_RBMP_Other_2022(df, country, outfile):
+def _9_1_sw_delineation_of_the_management_units_in_the_1st_and_2nd_RBMP_Other_2022(df, country, outfile, imagepath):
     html_string = '''<br>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -1088,9 +1081,9 @@ def _9_1_sw_delineation_of_the_management_units_in_the_1st_and_2nd_RBMP_Other_20
     outfile.write(html_string)
 
 
-def _9_2_sw_Evolution_type_by_Category_in_the_1st_and_2nd_RBMP_2016(df, country, outfile):
+def _9_2_sw_Evolution_type_by_Category_in_the_1st_and_2nd_RBMP_2016(df, country, outfile, imagepath):
     html_string = '''<h3>Surface water bodies evolution type by category 3<sup STYLE="font-size:75%">rd</sup> Cycle</h3>'''
-    category = ["RW","LW"]
+    category = ["RW","LW", "TW", "CW", "TeW"]
     for categ in category:
         if not df.loc[(df['Category'] == categ)].empty:
             html_string += '''<br>'''
@@ -1099,7 +1092,7 @@ def _9_2_sw_Evolution_type_by_Category_in_the_1st_and_2nd_RBMP_2016(df, country,
     outfile.write(html_string)
 
 
-def _9_3_sw_Evolution_type_by_Country_in_the_1st_and_2nd_RBMP_2016 (df, country, outfile):
+def _9_3_sw_Evolution_type_by_Country_in_the_1st_and_2nd_RBMP_2016 (df, country, outfile, imagepath):
     html_string = '''<h3>Surface water bodies evolution type by country 3<sup STYLE="font-size:75%">rd</sup> Cycle</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -1107,7 +1100,7 @@ def _9_3_sw_Evolution_type_by_Country_in_the_1st_and_2nd_RBMP_2016 (df, country,
     outfile.write(html_string)
 
 
-def gw_delineation_of_the_management_units_in_the_1st_and_2nd_RBMP_Unchanged_Other_2022(df, country, outfile):
+def gw_delineation_of_the_management_units_in_the_1st_and_2nd_RBMP_Unchanged_Other_2022(df, country, outfile, imagepath):
     html_string = '''<h3>30. Groundwater bodies delineation and evolution type 3<sup STYLE="font-size:75%">rd</sup> 
                         RBMP</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
@@ -1116,7 +1109,7 @@ def gw_delineation_of_the_management_units_in_the_1st_and_2nd_RBMP_Unchanged_Oth
     outfile.write(html_string.replace('^2', '<sup>2</sup>').replace('.0', ''))
 
 
-def _10_2_gw_Evolution_type_by_Country_in_the_1st_and_2nd_RBMP_2016(df, country, outfile):
+def _10_2_gw_Evolution_type_by_Country_in_the_1st_and_2nd_RBMP_2016(df, country, outfile, imagepath):
     html_string = '''<br>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
@@ -1134,7 +1127,7 @@ def _10_2_gw_Evolution_type_by_Country_in_the_1st_and_2nd_RBMP_2016(df, country,
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _6_surfaceWaterBodyTypeCode(df, country, outfile):
+def _6_surfaceWaterBodyTypeCode(df, country, outfile, imagepath):
     html_string = '''<br><h3>32. Surface water bodies broad types</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         html_string += '''<br>'''
@@ -1144,7 +1137,7 @@ def _6_surfaceWaterBodyTypeCode(df, country, outfile):
     outfile.write(html_string.replace('^2', '<sup STYLE="font-size:75%">2</sup>').replace('.0', ''))
 
 
-def _29_1_EcologicalMonitoring_Map_data (df, country, outfile):
+def _29_1_EcologicalMonitoring_Map_data (df, country, outfile, imagepath):
     html_string = '''<h3>31.Monitoring<br>Ecological Monitoring</h3>'''
     if not df.loc[(df['RBD Code'].str.match(r'^' + str(country) + '.*') == True)].empty:
         temp = df.loc[(df['RBD Code'].str.match(r'^' + str(country) + '.*'))]
@@ -1152,7 +1145,7 @@ def _29_1_EcologicalMonitoring_Map_data (df, country, outfile):
     outfile.write(html_string)
 
 
-def _29_2_ChemicalMonitoring_Map_data (df, country, outfile):
+def _29_2_ChemicalMonitoring_Map_data (df, country, outfile, imagepath):
     html_string = '''<br><p><b>Chemical Monitoring</b></p>'''
     if not df.loc[(df['RBD Code'].str.match(r'^' + str(country) + '.*') == True)].empty:
         temp = df.loc[(df['RBD Code'].str.match(r'^' + str(country) + '.*'))]
@@ -1160,7 +1153,7 @@ def _29_2_ChemicalMonitoring_Map_data (df, country, outfile):
     outfile.write(html_string)
 
 
-def _29_3_QuantitativeMonitoring_Map_data (df, country, outfile):
+def _29_3_QuantitativeMonitoring_Map_data (df, country, outfile, imagepath):
     html_string = '''<br><p><b>Quantitative Monitoring</b></p>'''
     if not df.loc[(df['RBD Code'].str.match(r'^' + str(country) + '.*') == True)].empty:
         temp = df.loc[(df['RBD Code'].str.match(r'^' + str(country) + '.*'))]
