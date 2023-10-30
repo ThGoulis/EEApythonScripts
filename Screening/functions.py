@@ -1,6 +1,6 @@
 import csv
-
-country = ['FR']
+import pandas as pd
+from statistics import median
 
 def swNumberAndSize(working_directory, conn, countryCode, cYear):
     headers = ['Country', 'Year', 'Number', 'Number (%)', 'Length (km)', 'Length (%)', 'Area (km^2)', 'Area (%)',
@@ -49,36 +49,36 @@ def swNumberAndSize(working_directory, conn, countryCode, cYear):
             dropMedianLength = '''drop table if exists swMedianLength;'''
 
             MedianLength = '''create temporary table swMedianLength as SELECT countryCode,
-                   cYear,
-                   round(AVG(cLength), 1) as medianLength
-              FROM (
-                       SELECT countryCode,
-                              cYear,
-                              cLength
-                         FROM [WFD2022extract.SWB_SurfaceWaterBody]
-                        WHERE countryCode = "''' + country + '''" AND 
-                              countryCode IS NOT NULL AND 
-                              cLength IS NOT NULL AND 
-                              cYear = ''' + str(cYear) + '''
-                        ORDER BY cArea
-                        LIMIT 2 - (
-                                      SELECT COUNT( * ) 
-                                        FROM [WFD2022extract.SWB_SurfaceWaterBody]
-                                       WHERE countryCode = "''' + country + '''" AND 
-                                             countryCode IS NOT NULL AND 
-                                             cLength IS NOT NULL AND 
-                                             cYear = ''' + str(cYear) + '''
-                                  )
-            %                     2 OFFSET (
-                                  SELECT (COUNT( * ) - 1) / 2
-                                    FROM [WFD2022extract.SWB_SurfaceWaterBody]
-                                   WHERE countryCode = "''' + country + '''" AND 
-                                         countryCode IS NOT NULL AND 
-                                         cLength IS NOT NULL AND 
-                                         cYear = ''' + str(cYear) + '''
-                                   GROUP BY countryCode = "''' + country + '''"
-                              )
-                   );'''
+                                   cYear,
+                                   round(AVG(cLength), 1) as medianLength
+                              FROM (
+                                       SELECT countryCode,
+                                              cYear,
+                                              cLength
+                                         FROM [WFD2022extract.SWB_SurfaceWaterBody]
+                                        WHERE countryCode = "''' + country + '''" AND 
+                                              countryCode IS NOT NULL AND 
+                                              cLength IS NOT NULL AND 
+                                              cYear = 2022
+                                        ORDER BY cLength
+                                        LIMIT 2 - (
+                                          SELECT COUNT( * ) 
+                                            FROM [WFD2022extract.SWB_SurfaceWaterBody]
+                                           WHERE countryCode = "''' + country + '''" AND 
+                                                 countryCode IS NOT NULL AND 
+                                                 cLength IS NOT NULL AND 
+                                                 cYear = 2022
+                                                  )
+                            %                     2 OFFSET (
+                                                  SELECT (COUNT( * ) - 1) / 2
+                                                    FROM [WFD2022extract.SWB_SurfaceWaterBody]
+                                                   WHERE countryCode = "''' + country + '''" AND 
+                                                         countryCode IS NOT NULL AND 
+                                                         cLength IS NOT NULL AND 
+                                                         cYear = 2022
+                                                   GROUP BY countryCode = "''' + country + '''"
+                                              )
+                                   );'''
 
             final = '''SELECT countryCode,
                        cYear,
@@ -93,6 +93,9 @@ def swNumberAndSize(working_directory, conn, countryCode, cYear):
                   FROM [WFD2022extract.SWB_SurfaceWaterBody]
                  WHERE cYear = ''' + str(cYear) + ''' AND
                        countryCode = "''' + country + '''";'''
+
+
+
             # count(euSurfaceWaterBodyCode) * 100.0 /
             # (select count(euSurfaceWaterBodyCode)
             # from
@@ -175,6 +178,7 @@ def gwNumberAndSize(working_directory, conn, countryCode, cYear):
             # round(sum(cArea) * 100.0 / (select sum(cArea)
             # from
             # [WFD2022extract.GWB_GroundWaterBody])),
+
             cur.execute(dropMedianArea)
             cur.execute(MedianArea)
             data = cur.execute(final).fetchall()
@@ -285,11 +289,11 @@ def swSignificantPressureType(working_directory, conn, countryCode, cYear):
         write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
+        country = ','.join(countryCode)
         swSignificantPressureType = cur.execute('''SELECT DISTINCT swSignificantPressureTypeGroup
                       FROM [WFD2022extract.SWB_SurfaceWaterBody_swSignificantPressureType]
-                      WHERE swSignificantPressureTypeGroup IS NOT NULL;''').fetchall()
-
-        
+                      WHERE swSignificantPressureTypeGroup IS NOT NULL 
+                      and countryCode = "''' + country + '''";''').fetchall()
 
         for country in countryCode:
             for spt in swSignificantPressureType:
@@ -345,7 +349,7 @@ def swSignificant_pressures_reported_as_Other(working_directory, conn, countryCo
                                FROM [WFD2022extract.SWB_SurfaceWaterBody_swSignificantPressureType]
                               WHERE countryCode = "''' + country + '''" AND 
                                     swSignificantPressureOther IS NOT NULL
-                            ),3
+                            ),2
                    ) 
                   FROM [WFD2022extract.SWB_SurfaceWaterBody_swSignificantPressureType]
                  WHERE countryCode = "''' + country + '''" AND 
@@ -409,7 +413,8 @@ def swSignificant_impacts(working_directory, conn, countryCode, cYear):
             droptable = '''drop table if exists distinctValues;'''
             temp = '''create temporary table distinctValues as 
                         select Distinct euSurfaceWaterBodyCode as Value 
-                        from [WFD2022extract.SWB_SurfaceWaterBody_swSignificantImpactType];'''
+                        from [WFD2022extract.SWB_SurfaceWaterBody_swSignificantImpactType]
+                        WHERE countryCode = "''' + country + '''";'''
 
             final = '''SELECT countryCode,
                    cYear,
@@ -428,6 +433,7 @@ def swSignificant_impacts(working_directory, conn, countryCode, cYear):
             data = cur.execute(final).fetchall()
 
             write.writerows(data)
+
 
 def gwSignificantImpactType_Other(working_directory, conn, countryCode, cYear):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_PressuresImpacts/GWB_Impacts_Other?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
@@ -449,9 +455,9 @@ def gwSignificantImpactType_Other(working_directory, conn, countryCode, cYear):
                                'FROM [WFD2022extract.GWB_GroundWaterBody_gwSignificantImpactType] '
                                'WHERE cYear = ? AND countryCode = ? '
                                'and gwSignificantImpactOther is not Null '
-                               'GROUP BY gwSignificantImpactOther '
-                               , (cYear, country, cYear, country)).fetchall()
+                               'GROUP BY gwSignificantImpactOther ', (cYear, country, cYear, country)).fetchall()
             write.writerows(data)
+
 
 def gwSignificant_impacts(working_directory, conn, countryCode, cYear):
     headers = ['Country', 'Year', 'Significant Impact Type', 'Area (km^2)', 'Area (%)']
@@ -466,7 +472,8 @@ def gwSignificant_impacts(working_directory, conn, countryCode, cYear):
 
             temp = '''create temporary table distinctValues as 
                         select Distinct groundWaterBodyName, cArea as Value 
-                        from [WFD2022extract.GWB_GroundWaterBody_gwSignificantImpactType];'''
+                        from [WFD2022extract.GWB_GroundWaterBody_gwSignificantImpactType]
+                        where countryCode = "''' + country + '''";'''
 
             final = '''SELECT countryCode,
                        cYear,
@@ -485,6 +492,7 @@ def gwSignificant_impacts(working_directory, conn, countryCode, cYear):
             data = cur.execute(final).fetchall()
 
             write.writerows(data)
+
 
 def gwSignificantPressureType_Table(working_directory, conn, countryCode, cYear):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_PressuresImpacts/GWB_Pressures?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
@@ -571,6 +579,7 @@ def gwSignificantPressureType_Table(working_directory, conn, countryCode, cYear)
 
                     write.writerows(data)
 
+
 def gwSignificantPressureType_OtherTable(working_directory, conn, countryCode, cYear):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_PressuresImpacts/GWB_Pressures_Other?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ['Country', 'Year', 'Significant Pressure Other', 'Area (km^2)', 'Area (%)']
@@ -592,6 +601,7 @@ def gwSignificantPressureType_OtherTable(working_directory, conn, countryCode, c
                                'GROUP BY gwSignificantPressureOther '
                                , (cYear, country, cYear, country)).fetchall()
             write.writerows(data)
+
 
 def gwSignificantImpactTypeByCountry2022(working_directory, conn, countryCode, cYear):
     headers = ['Country', 'Impact 0 - Area (km^2)', 'Impact 0 - Area (%)',
@@ -664,6 +674,7 @@ def gwSignificantImpactTypeByCountry2022(working_directory, conn, countryCode, c
             data = cur.execute(final).fetchall()
             write.writerows(data)
 
+
 def swNumber_of_impacts_by_country_CreateTable_UploadData(working_directory, conn, countryCode, cYear):
     headers = ['Country', 'Year',
                'Impact 0 - Area (km^2)', 'Impact 0 - Area (%)',
@@ -704,6 +715,7 @@ def swNumber_of_impacts_by_country_CreateTable_UploadData(working_directory, con
                 cur.executemany(update, sql)
                 conn.commit()
 
+
 def gwSignificantImpactType(working_directory, conn, countryCode, cYear):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_PressuresImpacts/GWB_Impacts?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
@@ -714,10 +726,12 @@ def gwSignificantImpactType(working_directory, conn, countryCode, cYear):
         write.writerow(header)
 
         cur = conn.cursor()
+        country = ','.join(countryCode)
         SOW_GWB_gwSignificantImpactType = cur.execute('''select distinct gwSignificantImpactType
                                                         from [WFD2022extract.GWB_GroundWaterBody_gwSignificantImpactType]
                                                         where cYear = ''' + str(cYear) + ''' 
-                                                        and gwSignificantImpactType <> "Unpopulated";''').fetchall()
+                                                        and gwSignificantImpactType <> "Unpopulated" 
+                                                        and countryCode = "''' + country + '''";''').fetchall()
 
         for country in countryCode:
             for Itype in SOW_GWB_gwSignificantImpactType:
@@ -787,9 +801,11 @@ def swEcologicalexemptionandpressure(working_directory, conn, countryCode, cYear
         write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
+        country = ','.join(countryCode)
         swEcologicalExemptionTypeGroup = cur.execute(
             '''select distinct swEcologicalExemptionTypeGroup from [WFD2022extract.SWB_SurfaceWaterBody_SWEcologicalExemptionType] 
-                        WHERE swEcologicalExemptionTypeGroup IS NOT NULL''').fetchall()
+                        WHERE swEcologicalExemptionTypeGroup IS NOT NULL and
+                        countryCode = "''' + country + '''" ''').fetchall()
         
 
         for country in countryCode:
@@ -808,8 +824,6 @@ def swEcologicalexemptionandpressure(working_directory, conn, countryCode, cYear
                            group by swEcologicalExemptionType, swEcologicalExemptionPressure;'''
                                     ).fetchall()
 
-                # data = cur.execute(final).fetchall()
-
                 write.writerows(final)
 
 
@@ -823,33 +837,42 @@ def swEcologicalexemption(working_directory, conn, countryCode, cYear):
         write.writerow(headers)
         cur = conn.cursor()
 
-        EcologicalExemption = cur.execute('''select distinct swEcologicalExemptionTypeGroup 
+        country = ','.join(countryCode)
+        EcologicalExemptionGroup = cur.execute('''select distinct swEcologicalExemptionTypeGroup 
                                 from [WFD2022extract.SWB_SurfaceWaterBody_SWEcologicalExemptionType]
-                                where swEcologicalExemptionTypeGroup is not NULL;''').fetchall()
+                                where swEcologicalExemptionTypeGroup is not NULL AND
+                                countryCode = "''' + country + '''";''').fetchall()
 
+        EcologicalExemption = cur.execute('''SELECT DISTINCT swEcologicalExemptionType
+                                  FROM [WFD2022extract.SWB_SurfaceWaterBody_SWEcologicalExemptionType]
+                                 WHERE swEcologicalExemptionType IS NOT NULL AND 
+                                       countryCode = "''' + country + '''";''').fetchall()
         for country in countryCode:
-            for exemption in EcologicalExemption:
-                temptype = ','.join(exemption)
-                final = '''SELECT countryCode,
-                               cYear,
-                               swEcologicalExemptionTypeGroup,
-                               swEcologicalExemptionType,
-                               round(count(distinct euSurfaceWaterBodyCode) ),
-                               round(count(distinct euSurfaceWaterBodyCode) * 100.0 / (
-                                         SELECT count(distinct euSurfaceWaterBodyCode) 
-                                           FROM [WFD2022extract.SWB_SurfaceWaterBody_SWEcologicalExemptionType]
-                                          WHERE countryCode = "''' + country + '''" AND 
-                                                swEcologicalExemptionTypeGroup = "''' + temptype + '''"
-                                     )
-                               ) 
-                          FROM [WFD2022extract.SWB_SurfaceWaterBody_SWEcologicalExemptionType] 
-                         WHERE countryCode = "''' + country + '''" and 
-                         swEcologicalExemptionTypeGroup = "''' + temptype + '''"
-                         group by swEcologicalExemptionTypeGroup, swEcologicalExemptionType;'''
+            for temp in EcologicalExemption:
+                for temp1 in EcologicalExemptionGroup:
+                    temptype = ','.join(temp)
+                    temptypegroup = ','.join(temp1)
+                    final = '''SELECT countryCode,
+                                   cYear,
+                                   swEcologicalExemptionTypeGroup,
+                                   swEcologicalExemptionType,
+                                   round(count(distinct euSurfaceWaterBodyCode) ),
+                                   round(count(distinct euSurfaceWaterBodyCode) * 100.0 / (
+                                             SELECT count(distinct euSurfaceWaterBodyCode) 
+                                               FROM [WFD2022extract.SWB_SurfaceWaterBody_SWEcologicalExemptionType]
+                                              WHERE countryCode = "''' + country + '''" AND 
+                                                    swEcologicalExemptionTypeGroup = "''' + temptypegroup + '''"
+                                         )
+                                   ) 
+                              FROM [WFD2022extract.SWB_SurfaceWaterBody_SWEcologicalExemptionType] 
+                             WHERE countryCode = "''' + country + '''" and 
+                             swEcologicalExemptionType = "''' + temptype + '''" and
+                             swEcologicalExemptionTypeGroup = "''' + temptypegroup + '''"
+                             group by swEcologicalExemptionTypeGroup, swEcologicalExemptionType;'''
 
-                data = cur.execute(final).fetchall()
+                    data = cur.execute(final).fetchall()
 
-                write.writerows(data)
+                    write.writerows(data)
 
 
 def SWB_Chemical_exemption_type(working_directory, conn, countryCode, cYear):
@@ -861,14 +884,15 @@ def SWB_Chemical_exemption_type(working_directory, conn, countryCode, cYear):
         write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
+        country = ','.join(countryCode)
         swChemicalExemptionTypeGroup = cur.execute('''select distinct swChemicalExemptionTypeGroup
                                             from [WFD2022extract.SWB_SurfaceWaterBody_SWPrioritySubstance_SWChemicalExemptionType]
-                                            where cYear = ''' + str(
-            cYear) + ''' and swChemicalExemptionTypeGroup is not Null;''').fetchall()
+                                            where cYear = ''' + str(cYear) + ''' and swChemicalExemptionTypeGroup is not Null and 
+                                            countryCode = "''' + country + '''";''').fetchall()
         swChemicalExemptionType = cur.execute('''select distinct swChemicalExemptionType
                                             from [WFD2022extract.SWB_SurfaceWaterBody_SWPrioritySubstance_SWChemicalExemptionType]
-                                            where cYear = ''' + str(
-            cYear) + ''' and swChemicalExemptionType <> "None"''').fetchall()
+                                            where cYear = ''' + str(cYear) + ''' and swChemicalExemptionType <> "None" and 
+                                            countryCode = "''' + country + '''";''').fetchall()
         for country in countryCode:
             for chgroup in swChemicalExemptionTypeGroup:
                 for chtype in swChemicalExemptionType:
@@ -896,8 +920,7 @@ def SWB_Chemical_exemption_type(working_directory, conn, countryCode, cYear):
                                       countryCode = "''' + country + '''" AND 
                                       naturalAWBHMWB <> "Unpopulated" AND 
                                       swChemicalStatusValue <> "Unpopulated" AND 
-                                      swChemicalExemptionTypeGroup = "''' + tempgroup + '''";
-                    '''
+                                      swChemicalExemptionTypeGroup = "''' + tempgroup + '''";'''
 
                     sqlexecute = '''SELECT countryCode,
                                    swChemicalExemptionTypeGroup,
@@ -934,8 +957,6 @@ def SWB_Chemical_exemption_type(working_directory, conn, countryCode, cYear):
                     write.writerows(data)
 
 
-
-
 def Surface_water_bodies_Quality_element_exemptions_Type(working_directory, conn, countryCode, cYear):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_QE_qeEcologicalExemptionType/SWB_QE_qeEcologicalExemptionType?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
@@ -945,25 +966,36 @@ def Surface_water_bodies_Quality_element_exemptions_Type(working_directory, conn
                   "Number(%)"]
         write = csv.writer(f)
         write.writerow(header)
-        swEcologicalExemptionTypeGroup = ["Article4(4)", "Article4(5)", "Article4(6)", "Article4(7)"]
+
         cur = conn.cursor()
+        country = ','.join(countryCode)
+        swEcologicalExemptionTypeGroup = cur.execute('''select distinct qeEcologicalExemptionTypeGroup 
+                                                    from [WFD2022extract.SWB_SurfaceWaterBody_QualityElement_qeEcologicalExemptionType]
+                                                    where countryCode = "''' + country + '''" and 
+                                                    qeEcologicalExemptionTypeGroup is not Null AND
+                                                    qeEcologicalExemptionTypeGroup != "None";''').fetchall()
+
         for country in countryCode:
-            for values in swEcologicalExemptionTypeGroup:
-                data = cur.execute(
-                    'select countryCode, cYear, qeEcologicalExemptionTypeGroup, qeEcologicalExemptionType, count(Distinct euSurfaceWaterBodyCode), '
-                    'round(count(distinct euSurfaceWaterBodyCode) *100.0 / ( '
-                    'select count(distinct euSurfaceWaterBodyCode) '
-                    'from [WFD2022extract.SWB_SurfaceWaterBody_QualityElement_qeEcologicalExemptionType] '
-                    'where cYear = ? '
-                    'and countryCode = ? '
-                    'AND qeEcologicalExemptionTypeGroup = ? '
-                    '),3) '
-                    'from [WFD2022extract.SWB_SurfaceWaterBody_QualityElement_qeEcologicalExemptionType] '
-                    'where cYear = ? and qeEcologicalExemptionTypeGroup <> "None" '
-                    'AND countryCode = ? '
-                    'AND qeEcologicalExemptionTypeGroup = ? '
-                    'group by qeEcologicalExemptionType '
-                    , (cYear, country, values, cYear, country, values)).fetchall()
+            for temp in swEcologicalExemptionTypeGroup:
+                values = ','.join(temp)
+                data = cur.execute('''SELECT countryCode,
+                                   cYear,
+                                   qeEcologicalExemptionTypeGroup,
+                                   qeEcologicalExemptionType,
+                                   count(DISTINCT euSurfaceWaterBodyCode),
+                                   round(count(DISTINCT euSurfaceWaterBodyCode) * 100.0 / (
+                                                              SELECT count(DISTINCT euSurfaceWaterBodyCode) 
+                                                                FROM [WFD2022extract.SWB_SurfaceWaterBody_QualityElement_qeEcologicalExemptionType]
+                                                               WHERE cYear = 2022 AND 
+                                                                     countryCode = "''' + country + '''" AND 
+                                                                     qeEcologicalExemptionTypeGroup = "''' + values + '''"
+                                                          ), 1) 
+                              FROM [WFD2022extract.SWB_SurfaceWaterBody_QualityElement_qeEcologicalExemptionType]
+                             WHERE cYear = 2022 AND 
+                                   qeEcologicalExemptionTypeGroup <> "None" AND 
+                                   countryCode = "''' + country + '''" AND 
+                                   qeEcologicalExemptionTypeGroup = "''' + values + '''"
+                             GROUP BY qeEcologicalExemptionType;''').fetchall()
                 write.writerows(data)
 
 
@@ -991,8 +1023,7 @@ def gwChemical_Exemption_Type(working_directory, conn, countryCode, cYear):
                                                 where gwChemicalExemptionType <> "Unpopulated" AND
                                                 gwChemicalExemptionType <> "GWD Article 6(3) - Measures: increased risk" AND
                                                 gwChemicalExemptionType <> "GWD Article 6(3) - Measures: disproportionate cost" and
-                                                gwChemicalExemptionType <> "Missing";
-        ''').fetchall()
+                                                gwChemicalExemptionType <> "Missing";''').fetchall()
 
         for country in countryCode:
             for chgroup in gwChemicalExemptionTypeGroup:
@@ -1079,6 +1110,7 @@ def gwChemical_exemptions_and_pressures(working_directory, conn, countryCode, cY
         write.writerow(header)
 
         cur = conn.cursor()
+
         gwChemicalExemptionTypeGroup = cur.execute('''select distinct gwChemicalExemptionTypeGroup 
                     from [WFD2022extract.GWB_GroundWaterBody_GWPollutant_GWChemicalExemptionType] where gwChemicalExemptionTypeGroup is not Null;''').fetchall()
         gwChemicalExemptionType = cur.execute('''select distinct gwChemicalExemptionType 
@@ -1103,15 +1135,101 @@ def gwChemical_exemptions_and_pressures(working_directory, conn, countryCode, cY
                                                           gwChemicalExemptionPressureGroup, 
                                                           gwChemicalExemptionPressure,
                                                           round(sum(cArea))
-                                            from [WFD2022extract.GWB_GroundWaterBody_GWPollutant_GWChemicalExemptionType]
-                                            where countryCode = "''' + country + '''" and 
-                                            gwChemicalExemptionTypeGroup = "''' + ChemicalExemptionGroup + '''" and
-                                            gwChemicalExemptionType = "''' + ChemicalExemption + '''" and
-                                            gwChemicalExemptionPressure = "''' + ChemicalExemptionPressure + '''" and
-                                            gwChemicalExemptionPressureGroup = "''' + ChemicalExemptionPressureGroup + '''"
-                                            ''').fetchall()
+                                                from [WFD2022extract.GWB_GroundWaterBody_GWPollutant_GWChemicalExemptionType]
+                                                where countryCode = "''' + country + '''" and 
+                                                gwChemicalExemptionTypeGroup = "''' + ChemicalExemptionGroup + '''" and
+                                                gwChemicalExemptionType = "''' + ChemicalExemption + '''" and
+                                                gwChemicalExemptionPressure = "''' + ChemicalExemptionPressure + '''" and
+                                                gwChemicalExemptionPressureGroup = "''' + ChemicalExemptionPressureGroup + '''"
+                                                ''').fetchall()
                             write.writerows(data)
 
+
+def generate_quantitivetypeandpressure_table(conn):
+    cur = conn.cursor()
+
+    droptable = '''DROP TABLE IF EXISTS [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionTypePressure];'''
+
+    createtable = '''CREATE TABLE [GWB_GroundWaterBody_gwQuantitativeExemptionTypePressure] (
+                        cYear                                       INTEGER,
+                        fileUrl                                     VARCHAR (1000),
+                        countryCode                                 VARCHAR (2),
+                        countryName                                 VARCHAR (31),
+                        euRBDCode                                   VARCHAR (42),
+                        rbdName                                     VARCHAR (254),
+                        GwbID                                       INTEGER,
+                        wiseEvolutionType                           VARCHAR (254),
+                        groundWaterBodyName                         VARCHAR (254),
+                        cArea                                       REAL (18, 3),
+                        euGroundWaterBodyCode                       VARCHAR (42),
+                        linkSurfaceWaterBody                        VARCHAR (300),
+                        linkTerrestrialEcosystem                    VARCHAR (300),
+                        geologicalFormation                         VARCHAR (300),
+                        groundwaterBodyTransboundary                VARCHAR (300),
+                        gwSignificantPressureOther                  VARCHAR (1000),
+                        gwSignificantImpactOther                    VARCHAR (1000),
+                        gwAtRiskQuantitative                        VARCHAR (300),
+                        gwEORiskQuantitative                        VARCHAR (300),
+                        gwQuantitativeStatusValue                   VARCHAR (400),
+                        gwQuantitativeAssessmentYear                VARCHAR (10),
+                        gwQuantitativeAssessmentConfidence          VARCHAR (400),
+                        gwQuantitativeStatusExpectedAchievementDate VARCHAR (300),
+                        gwAtRiskChemical                            VARCHAR (300),
+                        gwEORiskChemical                            VARCHAR (300),
+                        gwChemicalStatusValue                       VARCHAR (400),
+                        gwChemicalAssessmentYear                    VARCHAR (10),
+                        gwChemicalAssessmentConfidence              VARCHAR (400),
+                        gwChemicalStatusExpectedAchievementDate     VARCHAR (300),
+                        GroundwaterbodyID                           INTEGER,
+                        gwQuantitativeExemptionTypeID               INTEGER,
+                        gwQuantitativeExemptionPressure             VARCHAR (300),
+                        gwQuantitativeExemptionPressureGroup        VARCHAR (400),
+                        gwQuantitativeExemptionType                 VARCHAR (300),
+                        gwQuantitativeExemptionTypeGroup            VARCHAR (400) 
+                    );'''
+
+    insertintotable = '''INSERT INTO [GWB_GroundWaterBody_gwQuantitativeExemptionTypePressure] SELECT [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].cYear,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].fileUrl,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].countryCode,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].countryName,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].euRBDCode,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].rbdName,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].GwbID,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].wiseEvolutionType,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].groundWaterBodyName,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].cArea,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].euGroundWaterBodyCode,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].linkSurfaceWaterBody,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].linkTerrestrialEcosystem,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].geologicalFormation,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].groundwaterBodyTransboundary,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].gwSignificantPressureOther,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].gwSignificantImpactOther,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].gwAtRiskQuantitative,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].gwEORiskQuantitative,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].gwQuantitativeStatusValue,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].gwQuantitativeAssessmentYear,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].gwQuantitativeAssessmentConfidence,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].gwQuantitativeStatusExpectedAchievementDate,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].gwAtRiskChemical,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].gwEORiskChemical,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].gwChemicalStatusValue,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].gwChemicalAssessmentYear,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].gwChemicalAssessmentConfidence,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].gwChemicalStatusExpectedAchievementDate,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].GroundwaterbodyID,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].gwQuantitativeExemptionTypeID,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionPressure].gwQuantitativeExemptionPressure,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionPressure].gwQuantitativeExemptionPressureGroup,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].gwQuantitativeExemptionType,
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].gwQuantitativeExemptionTypeGroup
+                     FROM [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType]
+                          JOIN
+                          [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionPressure] ON [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionPressure].GroundwaterbodyID = [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].GroundwaterbodyID;'''
+
+    cur.execute(droptable)
+    cur.execute(createtable)
+    cur.execute(insertintotable)
 
 def gwQuantitiveTypeAndPressure(working_directory, conn, countryCode, cYear):
     headers = ["Country", "Year", "Quantitative Exemption Type Group", "Quantitative Exemption Type",
@@ -1122,32 +1240,23 @@ def gwQuantitiveTypeAndPressure(working_directory, conn, countryCode, cYear):
             'w+', newline='') as f:
         write = csv.writer(f)
         write.writerow(headers)
+        country = ','.join(countryCode)
         cur = conn.cursor()
-        gwQuantitativeExemptionPressure = cur.execute('''select distinct gwQuantitativeExemptionPressure 
-                    from [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionPressure] where gwQuantitativeExemptionPressure <> "Missing"''').fetchall()
+        sql = cur.execute('''SELECT countryCode,
+                       cYear,
+                       gwQuantitativeExemptionTypeGroup,
+                       gwQuantitativeExemptionType,
+                       gwQuantitativeExemptionPressureGroup,
+                       gwQuantitativeExemptionPressure,
+                       round(sum(cArea) ) 
+                  FROM [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionTypePressure]
+                 WHERE countryCode = "''' + country + '''"
+                 GROUP BY gwQuantitativeExemptionTypeGroup,
+                          gwQuantitativeExemptionType,
+                          gwQuantitativeExemptionPressureGroup,
+                          gwQuantitativeExemptionPressure;''').fetchall()
 
-        for country in countryCode:
-            for temp in gwQuantitativeExemptionPressure:
-                QuantitivePressure = ','.join(temp)
-                sql = cur.execute('''select [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionPressure].countryCode,
-                                [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionPressure].cYear,
-                               gwQuantitativeExemptionTypeGroup,
-                               gwQuantitativeExemptionType,
-                               gwQuantitativeExemptionPressureGroup,
-                               gwQuantitativeExemptionPressure,
-                               (
-                                   SELECT round(sum([WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionPressure].cArea))
-                                     FROM [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionPressure]
-                                    WHERE [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionPressure].gwQuantitativeExemptionPressure = "''' + QuantitivePressure + '''"
-                               )
-                          FROM [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionPressure]
-                               INNER JOIN
-                               [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType] ON 
-                               [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionPressure].GroundwaterbodyID = [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].GroundwaterbodyID
-                         WHERE [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionPressure].countryCode = "''' + country + '''" and
-                                gwQuantitativeExemptionPressure <> "Missing"''').fetchall()
-                
-                write.writerows(sql)
+        write.writerows(sql)
 
 
 def Surface_water_bodies_Ecological_status_or_potential_groupGood(working_directory, conn, countryCode, cYear):
@@ -1545,24 +1654,22 @@ def swEcological_status_or_potential_and_chemical_status_by_category(working_dir
                                                swEcologicalStatusOrPotentialValue,
                                                round(count(surfaceWaterBodyCategory) ),
                                                round(count(surfaceWaterBodyCategory) * 100.0 / (
-                                                                     SELECT count(surfaceWaterBodyCategory) 
-                                                                       FROM [WFD2022extract.SWB_SurfaceWaterBody]
-                                                                      WHERE cYear = ? AND 
-                                                                            countryCode = ? and
-                                                                            naturalAWBHMWB <> "Unpopulated" AND 
-                                                                            surfaceWaterBodyCategory <> "Unpopulated" and
-                                                                            surfaceWaterBodyCategory = ?
-                                                                 )
+                                                           SELECT count(surfaceWaterBodyCategory) 
+                                                             FROM [WFD2022extract.SWB_SurfaceWaterBody]
+                                                            WHERE cYear = 2022 AND 
+                                                                  countryCode = "''' + country + '''" AND 
+                                                                  naturalAWBHMWB <> "Unpopulated" AND 
+                                                                  surfaceWaterBodyCategory <> "Unpopulated" AND 
+                                                                  surfaceWaterBodyCategory = "''' + categ + '''"
                                                        )
-                                                  FROM [WFD2022extract.SWB_SurfaceWaterBody]
-                                                 WHERE cYear = ? AND 
-                                                       countryCode = ? AND 
-                                                       surfaceWaterBodyCategory <> "Unpopulated" AND
-                                                       swEcologicalStatusOrPotentialValue = ? and
-                                                       naturalAWBHMWB <> "Unpopulated" AND 
-                                                       surfaceWaterBodyCategory = ?
-                                                       '''
-                                       , (cYear, country, categ, cYear, country, status, categ)).fetchall()
+                                           ) 
+                                      FROM [WFD2022extract.SWB_SurfaceWaterBody]
+                                     WHERE cYear = 2022 AND 
+                                           countryCode = "''' + country + '''" AND 
+                                           surfaceWaterBodyCategory <> "Unpopulated" AND 
+                                           swEcologicalStatusOrPotentialValue = "''' + status + '''" AND 
+                                           naturalAWBHMWB <> "Unpopulated" AND 
+                                           surfaceWaterBodyCategory = "''' + categ + '''";''').fetchall()
                     write.writerows(data)
     with open(
             working_directory + '12.swChemicalStatusValue_by_Country_by_Categ' + str(cYear) + '.csv',
@@ -1832,7 +1939,8 @@ def gwQuantitativeReasonsForFailure_Table(working_directory, conn, countryCode, 
                    round(sum(cArea) * 100.0 / (
                                             SELECT sum(cArea) 
                                               FROM [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeReasonsForFailure]
-                                             WHERE gwQuantitativeStatusValue = 3
+                                             WHERE gwQuantitativeStatusValue = 3 and
+                                             countryCode = "''' + country + '''"
                                         ))
               FROM [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeReasonsForFailure]
              WHERE gwQuantitativeStatusValue = 3 and countryCode = "''' + country + '''"
@@ -2026,6 +2134,35 @@ def gwQuantitativeStatusExpectedAchievementDate(working_directory, conn, country
                 write.writerows(data)
 
 
+def gwChemicalStatusExpectedGoodIn2022(working_directory, conn, countryCode, cYear):
+    with open(
+            working_directory + '26.gwChemicalStatusExpectedGoodIn' + str(cYear) + '.csv',
+            'w+', newline='') as f:
+        header = ["Country", "Year", "Good Chemical Status Expected Date", "Area (km^2)", "Area(%)"]
+        write = csv.writer(f)
+        write.writerow(header)
+
+        cur = conn.cursor()
+        for country in countryCode:
+            data = cur.execute('''SELECT countryCode,
+                       cYear,
+                       gwChemicalStatusExpectedAchievementDate,
+                       round(sum(cArea), 1),
+                       round(sum(cArea) * 100 / (
+                                SELECT sum(cArea) 
+                                  FROM [WFD2022extract.GWB_GroundWaterBody]
+                                 WHERE cYear == ''' + str(cYear) + ''' AND 
+                                       countryCode = "''' + country + '''"
+                            ), 3) 
+                  FROM [WFD2022extract.GWB_GroundWaterBody]
+                 WHERE cYear == ''' + str(cYear) + ''' AND
+                       countryCode = "''' + country + '''"
+                 GROUP BY gwChemicalStatusExpectedAchievementDate;
+            ''').fetchall()
+
+            write.writerows(data)
+
+
 def gwChemicalStatusExpectedAchievementDate(working_directory, conn, countryCode, cYear):
     with open(
             working_directory + '26.gwChemicalStatusExpectedAchievementDate' + str(cYear) + '.csv',
@@ -2184,6 +2321,7 @@ def Surface_water_bodies_QE1__assessment(working_directory, conn, countryCode, c
                                        , (country, cYear, *value, cYear, country, *value, result)).fetchall()
                     write.writerows(data)
 
+
 def Surface_water_bodies_QE2_assessment(working_directory, conn, countryCode, cYear):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_qeMonitoringResults/SWB_qeMonitoringResults?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
@@ -2227,6 +2365,7 @@ def Surface_water_bodies_QE2_assessment(working_directory, conn, countryCode, cY
                                        , (country, cYear, *value, cYear, country, *value, result)).fetchall()
                     write.writerows(data)
 
+
 def Surface_water_bodies_QE3_assessment(working_directory, conn, countryCode, cYear):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_qeMonitoringResults/SWB_qeMonitoringResults?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
@@ -2269,6 +2408,7 @@ def Surface_water_bodies_QE3_assessment(working_directory, conn, countryCode, cY
                     '''
                                        , (country, cYear, *value, cYear, country, *value, result)).fetchall()
                     write.writerows(data)
+
 
 def Surface_water_bodies_QE3_3_assessment(working_directory, conn, countryCode, cYear):
     # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_qeMonitoringResults/SWB_qeMonitoringResults?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
@@ -2321,12 +2461,19 @@ def swEcologicalStatusOrPotentialExpectedAchievementDate(working_directory, conn
         header = ["Country", "Year", "Ecological Status Or Potential Expected Achievement Date", "Number", "Number(%)"]
         write = csv.writer(f)
         write.writerow(header)
-        swEcologicalStatusOrPotentialExpectedAchievementDate = [
-            "Good status already achieved", "Less stringent objectives already achieved",
-            "2016--2021", "2022--2027", "Beyond 2027", "Unknown"]
         cur = conn.cursor()
+
+        country = ','.join(countryCode)
+        swEcologicalStatusOrPotentialExpectedAchievementDate = cur.execute('''SELECT DISTINCT swEcologicalStatusOrPotentialExpectedAchievementDate 
+                                            from [WFD2022extract.SWB_SurfaceWaterBody] 
+                                            where swEcologicalStatusOrPotentialExpectedAchievementDate is not null and
+                                            swEcologicalStatusOrPotentialExpectedAchievementDate != "None" AND
+                                            countryCode = "''' + country + '''";''').fetchall()
+
+
         for country in countryCode:
-            for date in swEcologicalStatusOrPotentialExpectedAchievementDate:
+            for temp in swEcologicalStatusOrPotentialExpectedAchievementDate:
+                years = ','.join(temp)
                 data = cur.execute('''SELECT countryCode,
                                        cYear,
                                        swEcologicalStatusOrPotentialExpectedAchievementDate,
@@ -2339,55 +2486,16 @@ def swEcologicalStatusOrPotentialExpectedAchievementDate(working_directory, conn
                                                                     naturalAWBHMWB <> "unpopulated" AND 
                                                                     swEcologicalStatusOrPotentialValue <> "inapplicable" AND 
                                                                     swEcologicalStatusOrPotentialValue <> "Unpopulated" AND 
-                                                                    swEcologicalStatusOrPotentialExpectedGoodIn2015 <> "Unpopulated"
+                                                                    swEcologicalStatusOrPotentialExpectedAchievementDate <> "Unpopulated"
                                                          ), 0) AS PERCENT
                                   FROM [WFD2022extract.SWB_SurfaceWaterBody]
                                  WHERE countryCode = ? AND 
                                         cYear = ? and
                                        naturalAWBHMWB <> "unpopulated" AND 
                                        swEcologicalStatusOrPotentialValue <> "inapplicable" AND 
-                                       swEcologicalStatusOrPotentialValue <> "Unpopulated" AND 
-                                       swEcologicalStatusOrPotentialExpectedGoodIn2015 <> "Unpopulated" AND 
+                                       swEcologicalStatusOrPotentialValue <> "Unpopulated" AND  
                                        swEcologicalStatusOrPotentialExpectedAchievementDate = ?;'''
-                                   , (country, cYear, country, cYear, date)).fetchall()
-                write.writerows(data)
-
-
-def swEcologicalStatusOrPotentialExpectedAchievementDate(working_directory, conn, countryCode, cYear):
-    with open(
-            working_directory + '34.swEcologicalStatusOrPotentialExpectedAchievementDate' + str(cYear) + '.csv',
-            'w+', newline='') as f:
-        header = ["Country", "Year", "Ecological Status Or Potential Expected Achievement Date", "Number", "Number(%)"]
-        write = csv.writer(f)
-        write.writerow(header)
-        cur = conn.cursor()
-        swEcologicalStatusOrPotentialExpectedAchievementDate = cur.execute('''select distinct swEcologicalStatusOrPotentialExpectedAchievementDate 
-                            from [WFD2022extract.SWB_SurfaceWaterBody]''').fetchall()
-        for country in countryCode:
-            for date in swEcologicalStatusOrPotentialExpectedAchievementDate:
-                data = cur.execute('''SELECT countryCode,
-                                       cYear,
-                                       swEcologicalStatusOrPotentialExpectedAchievementDate,
-                                       COUNT(euSurfaceWaterBodyCode),
-                                       round(COUNT(euSurfaceWaterBodyCode) * 100.0 / (
-                                             SELECT COUNT(euSurfaceWaterBodyCode) 
-                                               FROM [WFD2022extract.SWB_SurfaceWaterBody]
-                                              WHERE countryCode = ? AND 
-                                                    cYear = ? AND 
-                                                    naturalAWBHMWB <> "unpopulated" AND 
-                                                    swEcologicalStatusOrPotentialValue <> "inapplicable" AND 
-                                                    swEcologicalStatusOrPotentialValue <> "Unpopulated" 
-
-                                         ), 0)
-                                  FROM [WFD2022extract.SWB_SurfaceWaterBody]
-                                 WHERE countryCode = ? AND 
-                                        cYear = ? and
-                                       naturalAWBHMWB <> "unpopulated" AND 
-                                       swEcologicalStatusOrPotentialValue <> "inapplicable" AND 
-                                       swEcologicalStatusOrPotentialValue <> "Unpopulated" AND 
-                                       swEcologicalStatusOrPotentialExpectedAchievementDate = ?;
-                '''
-                                   , (country, cYear, country, cYear, *date)).fetchall()
+                                   , (country, cYear, country, cYear, years)).fetchall()
                 write.writerows(data)
 
 
@@ -2400,7 +2508,7 @@ def swChemicalStatusExpectedAchievementDate(working_directory, conn, countryCode
         write.writerow(header)
         cur = conn.cursor()
         swChemicalStatusExpectedAchievementDate = cur.execute('''select distinct swChemicalStatusExpectedAchievementDate 
-        from [WFD2022extract.SWB_SurfaceWaterBody]''').fetchall()
+                                            from [WFD2022extract.SWB_SurfaceWaterBody] where swChemicalStatusExpectedAchievementDate is not null''').fetchall()
 
         for country in countryCode:
             for date in swChemicalStatusExpectedAchievementDate:
@@ -2591,6 +2699,7 @@ def sw_Evolution_type_by_Category_in_the_1st_and_2nd_RBMP(working_directory, con
         write.writerow(headers)
         surface_water_body_category = ["RW", "LW", "TW", "CW", "TeW"]
         cur = conn.cursor()
+        country = ','.join(countryCode)
         for category in surface_water_body_category:
             data = cur.execute('''SELECT surfaceWaterBodyCategory, cYear, wiseEvolutionType,
                                count(euSurfaceWaterBodyCode),
@@ -2598,13 +2707,16 @@ def sw_Evolution_type_by_Category_in_the_1st_and_2nd_RBMP(working_directory, con
                                          SELECT count(euSurfaceWaterBodyCode) 
                                            FROM [WFD2022extract.SWB_SurfaceWaterBody]
                                           WHERE cYear = ? AND 
-                                          surfaceWaterBodyCategory = ?
+                                          surfaceWaterBodyCategory = ? AND
+                                          countryCode = "''' + country + '''"
                                      )
                                )
                               FROM [WFD2022extract.SWB_SurfaceWaterBody]
                              WHERE cYear = ? AND 
-                               surfaceWaterBodyCategory = ?
+                               surfaceWaterBodyCategory = ? AND
+                               countryCode = "''' + country + '''"
                                GROUP BY wiseEvolutionType;''', (cYear, category, cYear, category)).fetchall()
+
             write.writerows(data)
 
 
@@ -2631,8 +2743,6 @@ def sw_Evolution_type_by_Country_in_the_1st_and_2nd_RBMP(working_directory, conn
                                countryCode = ?
                                GROUP BY wiseEvolutionType;''', (cYear, country, cYear, country)).fetchall()
             write.writerows(data)
-
-
 
 
 def gw_delineation_of_the_management_units_in_the_1st_and_2nd_RBMP(working_directory, conn, countryCode, cYear):
@@ -2843,6 +2953,7 @@ def surfaceWaterBodyTypeCode(working_directory, conn, countryCode, cYear):
             data = cur.execute(sql).fetchall()
             write.writerows(data)
 
+
 def swEcologicalStatus_ChemicalStatus_Assessment_confidence_by_country_by_category(working_directory, conn, countryCode,
                                                                                    cYear):
     with open(
@@ -2921,7 +3032,7 @@ def swEcologicalStatus_ChemicalStatus_Assessment_confidence_by_country_by_catego
 
 def rbdCodeNames(working_directory, conn, countryCode, cYear):
     with open(
-            working_directory +'rbdCodeNames'+str(cYear)+'.csv',
+            working_directory + 'rbdCodeNames' + str(cYear) + '.csv',
             'w+', newline='') as f:
         headers = ["Country", "RBD Code", "RBD Name"]
 
@@ -2929,17 +3040,18 @@ def rbdCodeNames(working_directory, conn, countryCode, cYear):
         write.writerow(headers)
         cur = conn.cursor()
 
-        for country in countryCode:
-            data = cur.execute('''select distinct countryCode, euRBDCode, rbdName from 
-                            [WFD2022extract.GWB_GroundWaterBody] order by euRBDCode;
-                            '''
-                               ).fetchall()
-            write.writerows(data)
+        data = cur.execute('''select distinct countryCode, euRBDCode, rbdName from 
+                        [WFD2022extract.GWB_GroundWaterBody] order by euRBDCode;
+                        '''
+                           ).fetchall()
+        write.writerows(data)
 
+# Extra csv
 def per_RBD_ExemptionType(directory, conn, countryCode, cYear):
     # per RBD Exemption Type
+    code = ''.join(countryCode)
     with open(
-            directory + 'swEcologicalExemptionType_FR_per_RBD_ExemptionType' + str(
+            directory + 'swEcologicalExemptionType_' + code + '_per_RBD_ExemptionType' + str(
                 cYear) + '.csv',
             'w+', newline='', encoding='utf-8') as f:
         headers = ["Country", "Year", "RBD Code", "Ecological Exemption Type Group", "Ecological Exemption Type",
@@ -2971,7 +3083,7 @@ def per_RBD_ExemptionType(directory, conn, countryCode, cYear):
                 write.writerows(data)
 
     with open(
-            directory+ 'gwQuantitativeExemptionType_FR_per_RBD_ExemptionType' + str(
+            directory + 'gwQuantitativeExemptionType_' + code + '_per_RBD_ExemptionType' + str(
                 cYear) + '.csv',
             'w+', newline='', encoding='utf-8') as f:
         headers = ["Country", "Year", "RBD Code", "Quantitative Exemption Type Group", "Quantitative Exemption Type",
@@ -3005,7 +3117,7 @@ def per_RBD_ExemptionType(directory, conn, countryCode, cYear):
                 write.writerows(data)
 
     with open(
-            directory + 'sw_QE_EcologicalExemptionType_FR_per_RBD_ExemptionType' + str(
+            directory + 'sw_QE_EcologicalExemptionType_' + code + '_per_RBD_ExemptionType' + str(
                 cYear) + '.csv',
             'w+', newline='', encoding='utf-8') as f:
         headers = ["Country", "Year", "RBD Code", "Quality Element Ecological Exemption Type Group",
@@ -3039,7 +3151,7 @@ def per_RBD_ExemptionType(directory, conn, countryCode, cYear):
                 write.writerows(data)
 
     with open(
-            directory+'swChemicalExemptionType_FR_per_RBD_ExemptionType' + str(
+            directory+'swChemicalExemptionType_' + code + '_per_RBD_ExemptionType' + str(
                 cYear) + '.csv',
             'w+', newline='', encoding='utf-8') as f:
         headers = ["Country", "Year", "RBD Code", "Chemical Exemption Type Group", "Chemical Exemption Type", "Number"]
@@ -3071,7 +3183,7 @@ def per_RBD_ExemptionType(directory, conn, countryCode, cYear):
                 write.writerows(data)
 
     with open(
-            directory + 'gwChemicalExemptionType_FR_per_RBD_ExemptionType' + str(
+            directory + 'gwChemicalExemptionType_' + code + '_per_RBD_ExemptionType' + str(
                 cYear) + '.csv',
             'w+', newline='', encoding='utf-8') as f:
         headers = ["Country", "Year", "RBD Code", "Chemical Exemption Type Group", "Chemical Exemption Type", "Number"]
@@ -3105,9 +3217,8 @@ def per_RBD_ExemptionType(directory, conn, countryCode, cYear):
 
     # Per RBD
     
-    with open(directory + 'swEcologicalExemptionType_FR_per_RBD_' + str(
-                cYear) + '.csv',
-            'w+', newline='', encoding='utf-8') as f:
+    with open(directory + 'swEcologicalExemptionType_' + code + '_per_RBD_' + str(
+                cYear) + '.csv', 'w+', newline='', encoding='utf-8') as f:
         headers = ['RBDCode', 'Number']
 
         write = csv.writer(f)
@@ -3118,18 +3229,15 @@ def per_RBD_ExemptionType(directory, conn, countryCode, cYear):
         data = cur.execute('''SELECT euRBDCode,
                            count(DISTINCT euSurfaceWaterBodyCode) 
                       FROM [WFD2022extract.SWB_SurfaceWaterBody_SWEcologicalExemptionType]
-                     WHERE countryCode = "RO" AND 
+                     WHERE countryCode = "''' + code + '''" AND 
                      swEcologicalExemptionType IS NOT NULL
                      GROUP BY euRBDCode,
                               swEcologicalExemptionType;''').fetchall()
 
-        
         write.writerows(data)
 
-    
-    with open(directory + 'swChemicalExemptionType_FR_per_RBD_' + str(
-                cYear) + '.csv',
-            'w+', newline='', encoding='utf-8') as f:
+    with open(directory + 'swChemicalExemptionType_' + code + '_per_RBD_' + str(
+                cYear) + '.csv', 'w+', newline='', encoding='utf-8') as f:
         headers = ['RBDCode', 'Number']
 
         write = csv.writer(f)
@@ -3141,36 +3249,33 @@ def per_RBD_ExemptionType(directory, conn, countryCode, cYear):
                                euRBDCode,
                                count(DISTINCT euSurfaceWaterBodyCode) 
                           FROM [WFD2022extract.SWB_SurfaceWaterBody_SWPrioritySubstance_SWChemicalExemptionType]
-                          WHERE countryCode = "RO" AND 
+                          WHERE countryCode = "''' + code + '''" AND 
                             swChemicalExemptionType IS NOT NULL
                          ''').fetchall()
 
         write.writerows(data)
 
+        with open(directory + 'qeEcologicalExemptionTypeGroup_' + code + '_per_RBD_' + str(
+                cYear) + '.csv', 'w+', newline='', encoding='utf-8') as f:
+            headers = ['RBDCode', 'Number']
     
-    with open(directory + 'qeEcologicalExemptionTypeGroup_FR_per_RBD_' + str(
-                cYear) + '.csv',
-            'w+', newline='', encoding='utf-8') as f:
-        headers = ['RBDCode', 'Number']
-
-        write = csv.writer(f)
-
-        write.writerow(headers)
-        cur = conn.cursor()
-
-        data = cur.execute('''SELECT euRBDCode,
-                           count(DISTINCT euSurfaceWaterBodyCode) 
-                      FROM [WFD2022extract.SWB_SurfaceWaterBody_QualityElement_qeEcologicalExemptionType]
-                     WHERE countryCode = "RO" AND 
-                        qeEcologicalExemptionTypeGroup IS NOT NULL
-                     GROUP BY euRBDCode,
-                              qeEcologicalExemptionTypeGroup;''').fetchall()
-
-        write.writerows(data)
+            write = csv.writer(f)
     
-    with open(directory + 'gwChemicalExemptionType_FR_per_RBD_' + str(
-                cYear) + '.csv',
-            'w+', newline='', encoding='utf-8') as f:
+            write.writerow(headers)
+            cur = conn.cursor()
+    
+            data = cur.execute('''SELECT euRBDCode,
+                               count(DISTINCT euSurfaceWaterBodyCode) 
+                          FROM [WFD2022extract.SWB_SurfaceWaterBody_QualityElement_qeEcologicalExemptionType]
+                         WHERE countryCode = "''' + code + '''" AND 
+                            qeEcologicalExemptionTypeGroup IS NOT NULL
+                         GROUP BY euRBDCode,
+                                  qeEcologicalExemptionTypeGroup;''').fetchall()
+    
+            write.writerows(data)
+        
+    with open(directory + 'gwChemicalExemptionType_' + code + '_per_RBD_' + str(
+                cYear) + '.csv', 'w+', newline='', encoding='utf-8') as f:
 
         headers = ['RBDCode', 'Number']
 
@@ -3182,17 +3287,15 @@ def per_RBD_ExemptionType(directory, conn, countryCode, cYear):
         data = cur.execute('''SELECT euRBDCode,
                            count(DISTINCT euGroundWaterBodyCode) 
                       FROM [WFD2022extract.GWB_GroundWaterBody_GWPollutant_GWChemicalExemptionType]
-                     WHERE countryCode = "RO" AND 
+                     WHERE countryCode = "''' + code + '''" AND 
                          gwChemicalExemptionTypeGroup IS NOT NULL
                      GROUP BY euRBDCode,
                               gwChemicalExemptionTypeGroup;''').fetchall()
 
         write.writerows(data)
 
-    
-    with open(directory + 'gwQuantitativeExemptionType_FR_per_RBD_' + str(
-                cYear) + '.csv',
-            'w+', newline='', encoding='utf-8') as f:
+    with open(directory + 'gwQuantitativeExemptionType_' + code + '_per_RBD_' + str(
+                cYear) + '.csv', 'w+', newline='', encoding='utf-8') as f:
         headers = ['RBDCode', 'Number']
 
         write = csv.writer(f)
@@ -3203,16 +3306,14 @@ def per_RBD_ExemptionType(directory, conn, countryCode, cYear):
         data = cur.execute('''SELECT euRBDCode,
                            count(DISTINCT euGroundWaterBodyCode) 
                       FROM [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType]
+                      WHERE countryCode = "''' + code + '''"
                      GROUP BY euRBDCode,
                               gwQuantitativeExemptionTypeGroup;''').fetchall()
 
-        
         write.writerows(data)
 
-    
-    with open(directory + 'swEcologicalExemptionType_FR_per_RBD_' + str(
-                cYear) + '.csv',
-            'w+', newline='', encoding='utf-8') as f:
+    with open(directory + 'swEcologicalExemptionType_' + code + '_per_RBD_' + str(
+                cYear) + '.csv', 'w+', newline='', encoding='utf-8') as f:
         headers = ['RBDCode', 'Number']
 
         write = csv.writer(f)
@@ -3223,88 +3324,86 @@ def per_RBD_ExemptionType(directory, conn, countryCode, cYear):
         data = cur.execute('''SELECT euRBDCode,
                            count(DISTINCT euSurfaceWaterBodyCode) 
                       FROM [WFD2022extract.SWB_SurfaceWaterBody_SWEcologicalExemptionType]
-                     WHERE countryCode = "RO" AND 
+                     WHERE countryCode = "''' + code + '''" AND 
                      swEcologicalExemptionType IS NOT NULL
                      GROUP BY euRBDCode,
                               swEcologicalExemptionType;''').fetchall()
 
-        
         write.writerows(data)
 
     # Overall
-    cur = conn.cursor()
-    cur = conn.execute('select * from [WFD2022extract.GWB_GroundWaterBody_GWPollutant_GWChemicalExemptionType]')
+    cur = conn.execute('''select * from [WFD2022extract.GWB_GroundWaterBody_GWPollutant_GWChemicalExemptionType] WHERE countryCode = "''' + country + '''"''')
     columns = list(map(lambda x: x[0], cur.description))
 
-    
-    with open(directory + 'gwChemicalExemptionType_Overall_FR_' + str(
+    with open(directory + 'gwChemicalExemptionType_Overall_' + code + '_' + str(
             cYear) + '.csv',
               'w+', newline='', encoding='utf-8') as f:
         write = csv.writer(f)
         write.writerow(columns)
 
         data = cur.execute('''SELECT *
-                        FROM [WFD2022extract.GWB_GroundWaterBody_GWPollutant_GWChemicalExemptionType];''').fetchall()
+                        FROM [WFD2022extract.GWB_GroundWaterBody_GWPollutant_GWChemicalExemptionType]
+                        WHERE countryCode = "''' + country + '''";''').fetchall()
 
         write.writerows(data)
 
-    cur = conn.execute('select * from [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType]')
+    cur = conn.execute('''select * from [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType] WHERE countryCode = "''' + country + '''"''')
     columns = list(map(lambda x: x[0], cur.description))
-    
 
-    with open(directory + 'gwQuantitativeExemptionType_Overall_FR_' + str(
+    with open(directory + 'gwQuantitativeExemptionType_Overall_' + code + '_' + str(
             cYear) + '.csv',
               'w+', newline='', encoding='utf-8') as f:
         write = csv.writer(f)
         write.writerow(columns)
 
         data = cur.execute('''SELECT *
-                        FROM [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType];''').fetchall()
+                        FROM [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType]
+                        WHERE countryCode = "''' + country + '''";''').fetchall()
 
         write.writerows(data)
 
-    cur = conn.cursor()
-    cur = conn.execute('select * from [WFD2022extract.SWB_SurfaceWaterBody_SWEcologicalExemptionType]')
+    cur = conn.execute('''select * from [WFD2022extract.SWB_SurfaceWaterBody_SWEcologicalExemptionType] 
+    WHERE countryCode = "''' + country + '''"''')
     columns = list(map(lambda x: x[0], cur.description))
 
-    with open(directory + 'swEcologicalExemptionType_Overall_FR_' + str(
+    with open(directory + 'swEcologicalExemptionType_Overall_' + code + '_' + str(
             cYear) + '.csv',
               'w+', newline='', encoding='utf-8') as f:
         write = csv.writer(f)
         write.writerow(columns)
         data = cur.execute('''select *
-                    FROM [WFD2022extract.SWB_SurfaceWaterBody_SWEcologicalExemptionType];''').fetchall()
+                    FROM [WFD2022extract.SWB_SurfaceWaterBody_SWEcologicalExemptionType]
+                    WHERE countryCode = "''' + country + '''";''').fetchall()
 
         write.writerows(data)
 
-    cur = conn.cursor()
-    cur = conn.execute('select * from [WFD2022extract.SWB_SurfaceWaterBody_QualityElement_qeEcologicalExemptionType]')
+    cur = conn.execute('''select * from [WFD2022extract.SWB_SurfaceWaterBody_QualityElement_qeEcologicalExemptionType] 
+                    WHERE countryCode = "''' + country + '''";''')
     columns = list(map(lambda x: x[0], cur.description))
 
-    with open(directory + 'swQE_EcologicalExemptionType_Overall_FR_' + str(
-            cYear) + '.csv',
-              'w+', newline='', encoding='utf-8') as f:
+    with open(directory + 'swQE_EcologicalExemptionType_Overall_' + code + '_' + str(
+            cYear) + '.csv', 'w+', newline='', encoding='utf-8') as f:
         write = csv.writer(f)
         write.writerow(columns)
         cur = conn.cursor()
         data = cur.execute('''SELECT *
-                    FROM [WFD2022extract.SWB_SurfaceWaterBody_QualityElement_qeEcologicalExemptionType];''').fetchall()
+                    FROM [WFD2022extract.SWB_SurfaceWaterBody_QualityElement_qeEcologicalExemptionType]
+                    WHERE countryCode = "''' + country + '''";''').fetchall()
 
         write.writerows(data)
 
-
-    cur = conn.cursor()
-    cur = conn.execute('select * from [WFD2022extract.SWB_SurfaceWaterBody_SWPrioritySubstance_SWChemicalExemptionType]')
+    cur = conn.execute('''select * from [WFD2022extract.SWB_SurfaceWaterBody_SWPrioritySubstance_SWChemicalExemptionType]
+                        WHERE countryCode = "''' + country + '''"''')
     columns = list(map(lambda x: x[0], cur.description))
 
-    with open(directory + 'swChemicalExemptionType_Overall_FR_' + str(
-            cYear) + '.csv',
-              'w+', newline='', encoding='utf-8') as f:
+    with open(directory + 'swChemicalExemptionType_Overall_' + code + '_' + str(
+            cYear) + '.csv', 'w+', newline='', encoding='utf-8') as f:
         write = csv.writer(f)
         write.writerow(columns)
         cur = conn.cursor()
         data = cur.execute('''SELECT *
-                        FROM [WFD2022extract.SWB_SurfaceWaterBody_SWPrioritySubstance_SWChemicalExemptionType];''').fetchall()
+                        FROM [WFD2022extract.SWB_SurfaceWaterBody_SWPrioritySubstance_SWChemicalExemptionType]
+                        WHERE countryCode = "''' + country + '''";''').fetchall()
 
         write.writerows(data)
 
