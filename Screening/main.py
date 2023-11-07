@@ -96,7 +96,6 @@ if __name__ == '__main__':
                functions.SWB_Chemical_exemption_type(working_directory, conn, countryCode, 2022),
                functions.gwChemical_Exemption_Type(working_directory, conn, countryCode, 2022),
                functions.gwChemical_exemptions_and_pressures(working_directory, conn, countryCode, 2022),
-
                functions.gwQuantitiveTypeAndPressure(working_directory, conn, countryCode, 2022),
                functions.gwPollutantOther(working_directory, conn, countryCode, 2022),
                functions.gwPollutant(working_directory, conn, countryCode, 2022),

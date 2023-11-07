@@ -1150,7 +1150,7 @@ def generate_quantitivetypeandpressure_table(conn):
 
     droptable = '''DROP TABLE IF EXISTS [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionTypePressure];'''
 
-    createtable = '''CREATE TABLE [GWB_GroundWaterBody_gwQuantitativeExemptionTypePressure] (
+    createtable = '''CREATE TABLE [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionTypePressure] (
                         cYear                                       INTEGER,
                         fileUrl                                     VARCHAR (1000),
                         countryCode                                 VARCHAR (2),
@@ -1188,7 +1188,7 @@ def generate_quantitivetypeandpressure_table(conn):
                         gwQuantitativeExemptionTypeGroup            VARCHAR (400) 
                     );'''
 
-    insertintotable = '''INSERT INTO [GWB_GroundWaterBody_gwQuantitativeExemptionTypePressure] SELECT [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].cYear,
+    insertintotable = '''INSERT INTO [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionTypePressure] SELECT [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].cYear,
                           [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].fileUrl,
                           [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].countryCode,
                           [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].countryName,
@@ -1258,7 +1258,7 @@ def gwQuantitiveTypeAndPressure(working_directory, conn, countryCode, cYear):
                        gwQuantitativeExemptionPressureGroup,
                        gwQuantitativeExemptionPressure,
                        round(sum(cArea) ) 
-                  FROM [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionTypePressure]
+                      FROM [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionTypePressure]
                  WHERE countryCode = "''' + country + '''"
                  GROUP BY gwQuantitativeExemptionTypeGroup,
                           gwQuantitativeExemptionType,
