@@ -2,7 +2,6 @@ import pandas as pd
 import eeafunctions
 import os
 import argparse
-import pdfkit
 import time
 from argparse import Namespace
 
@@ -135,8 +134,7 @@ for csv in graphs:
 
 f.write('</body></html>')
 
-css_file = '''
-.dataframe {
+css_file = '''.dataframe {
     font-size: 11pt; 
     font-family: Arial;
     border-collapse: collapse; 
@@ -174,8 +172,8 @@ css = open(working_directory + 'dfstyle.css', 'w', encoding="UTF-8")
 css.write(css_file)
 
 # print("Generate PDF report...")
-#
+# options = {'enable-local-file-access': None}
 # config = pdfkit.configuration(wkhtmltopdf=r"C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe")
-# pdfkit.from_file(working_directory + country + '.html', working_directory + country + '.pdf', configuration=config)
+# pdfkit.from_file(working_directory + country + '.html', working_directory + country + '.pdf', configuration=config, css=css, options=options)
 
 print("Script completed.")
