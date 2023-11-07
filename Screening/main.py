@@ -43,7 +43,9 @@ if __name__ == '__main__':
     print("Generated output files")
 
     scripts = {
-        # functions.swNumberAndSize(working_directory, conn, countryCode, 2022),
+               # # functions.generate_quantitivetypeandpressure_table(conn),
+               # functions.update_SWB_SurfaceWaterBody_SWEcologicalExemptionType_values(conn),
+               # functions.swNumberAndSize(working_directory, conn, countryCode, 2022),
                # functions.gwNumberAndSize(working_directory, conn, countryCode, 2022),
                # functions.swWater_body_category_and_Type(working_directory, conn, countryCode, 2022),
                # functions.swSignificantPressureType(working_directory, conn, countryCode, 2022),
@@ -94,7 +96,7 @@ if __name__ == '__main__':
                # functions.SWB_Chemical_exemption_type(working_directory, conn, countryCode, 2022),
                # functions.gwChemical_Exemption_Type(working_directory, conn, countryCode, 2022),
                # functions.gwChemical_exemptions_and_pressures(working_directory, conn, countryCode, 2022),
-               # # functions.generate_quantitivetypeandpressure_table(conn),
+
                # functions.gwQuantitiveTypeAndPressure(working_directory, conn, countryCode, 2022),
                # functions.gwPollutantOther(working_directory, conn, countryCode, 2022),
                # functions.gwPollutant(working_directory, conn, countryCode, 2022),

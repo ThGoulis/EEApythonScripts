@@ -1231,6 +1231,15 @@ def generate_quantitivetypeandpressure_table(conn):
     cur.execute(createtable)
     cur.execute(insertintotable)
 
+def update_SWB_SurfaceWaterBody_SWEcologicalExemptionType_values(conn):
+    cur = conn.cursor()
+
+    updateValues = '''UPDATE [WFD2022extract.SWB_SurfaceWaterBody_SWEcologicalExemptionType]
+                            SET swEcologicalExemptionType = 
+                            CASE WHEN swEcologicalExemptionType IS NULL THEN 'Article4(6) - Force Majeure' END;'''
+
+    cur.execute(updateValues)
+
 def gwQuantitiveTypeAndPressure(working_directory, conn, countryCode, cYear):
     headers = ["Country", "Year", "Quantitative Exemption Type Group", "Quantitative Exemption Type",
                "Quantitative Exemption Pressure Group",
