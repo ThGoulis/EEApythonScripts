@@ -1148,9 +1148,8 @@ def gwChemical_exemptions_and_pressures(working_directory, conn, countryCode, cY
 def generate_quantitivetypeandpressure_table(conn):
     cur = conn.cursor()
 
-    droptable = '''DROP TABLE IF EXISTS [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionTypePressure];'''
 
-    createtable = '''CREATE TABLE [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionTypePressure] (
+    createtable = '''CREATE TABLE IF NOT EXISTS [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionTypePressure] (
                         cYear                                       INTEGER,
                         fileUrl                                     VARCHAR (1000),
                         countryCode                                 VARCHAR (2),
@@ -1188,7 +1187,8 @@ def generate_quantitivetypeandpressure_table(conn):
                         gwQuantitativeExemptionTypeGroup            VARCHAR (400) 
                     );'''
 
-    insertintotable = '''INSERT INTO [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionTypePressure] SELECT [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].cYear,
+    insertintotable = '''INSERT INTO [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionTypePressure] 
+                        SELECT [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].cYear,
                           [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].fileUrl,
                           [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].countryCode,
                           [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].countryName,
@@ -1227,9 +1227,10 @@ def generate_quantitivetypeandpressure_table(conn):
                           JOIN
                           [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionPressure] ON [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionPressure].GroundwaterbodyID = [WFD2022extract.GWB_GroundWaterBody_gwQuantitativeExemptionType].GroundwaterbodyID;'''
 
-    cur.execute(droptable)
+
     cur.execute(createtable)
     cur.execute(insertintotable)
+
 
 def update_SWB_SurfaceWaterBody_SWEcologicalExemptionType_values(conn):
     cur = conn.cursor()

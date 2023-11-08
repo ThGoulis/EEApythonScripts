@@ -42,9 +42,11 @@ if __name__ == '__main__':
     st = time.time()
     print("Generated output files")
 
+    functions.generate_quantitivetypeandpressure_table(conn)
+    functions.update_SWB_SurfaceWaterBody_SWEcologicalExemptionType_values(conn)
+
     scripts = {
-               functions.generate_quantitivetypeandpressure_table(conn),
-               functions.update_SWB_SurfaceWaterBody_SWEcologicalExemptionType_values(conn),
+
                functions.swNumberAndSize(working_directory, conn, countryCode, 2022),
                functions.gwNumberAndSize(working_directory, conn, countryCode, 2022),
                functions.swWater_body_category_and_Type(working_directory, conn, countryCode, 2022),
@@ -112,8 +114,8 @@ if __name__ == '__main__':
                functions.per_RBD_ExemptionType(working_directory, conn, countryCode, 2022),
                }
 
-    with conn:
-        scripts
+    # with conn:
+    #     scripts
 
     conn.close()
     et = time.time()
