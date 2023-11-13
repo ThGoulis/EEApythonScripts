@@ -19,7 +19,7 @@ def rbdCodeNames(conn, countryCode, cYear, working_directory):
                      ORDER BY euRBDCode;
                             '''
                                ).fetchall()
-            print(data)
+
             write.writerows(data)
 
 
@@ -850,19 +850,19 @@ def swChemicalStatusExpectedAchievementDate(conn, countryCode, cYear, working_di
         cur = conn.cursor()
         for country in countryCode:
             for date in swChemicalStatusExpectedAchievementDate:
-                data = cur.execute('select countryCode, cYear, swChemicalStatusExpectedAchievementDate, COUNT( '
-                                'swChemicalStatusExpectedAchievementDate), '
-                                'round(COUNT(swChemicalStatusExpectedAchievementDate) * 100.0 / '
-                                '(select COUNT(swChemicalStatusExpectedAchievementDate) '
-                                'from SOW_SWB_SurfaceWaterBody '
-                                'where countryCode = ? '
-                                'and cYear == ? '
-                                'and swChemicalStatusExpectedAchievementDate <> "Unpopulated"), 0) '
-                                'from SOW_SWB_SurfaceWaterBody '
-                                'where countryCode = ? '
-                                'and cYear == ? '
-                                'and swChemicalStatusExpectedAchievementDate <> "Unpopulated" '
-                                'and swChemicalStatusExpectedAchievementDate = ? ', (country, cYear, country, cYear, date)).fetchall()
+                data = cur.execute('''select countryCode, cYear, swChemicalStatusExpectedAchievementDate, COUNT( 
+                                swChemicalStatusExpectedAchievementDate), 
+                                round(COUNT(swChemicalStatusExpectedAchievementDate) * 100.0 / 
+                                (select COUNT(swChemicalStatusExpectedAchievementDate) 
+                                from SOW_SWB_SurfaceWaterBody 
+                                where countryCode = "''' + country + '''"
+                                and cYear == ''' + str(cYear) + '''
+                                and swChemicalStatusExpectedAchievementDate <> "Unpopulated"), 0) 
+                                from SOW_SWB_SurfaceWaterBody 
+                                where countryCode = "''' + country + '''"
+                                and cYear == ''' + str(cYear) + '''
+                                and swChemicalStatusExpectedAchievementDate <> "Unpopulated"
+                                and swChemicalStatusExpectedAchievementDate = "''' + date + '''"; ''').fetchall()
                 write.writerows(data)
 
 
@@ -1556,7 +1556,7 @@ def swNumber_of_Impacts_by_country(conn, countryCode, cYear, working_directory):
             cur.execute(dropVal1)
             cur.execute(createVal1)
             data = cur.execute(final).fetchall()
-            print(data)
+
             write.writerows(data)
 
 
@@ -1839,7 +1839,7 @@ def gwSignificantImpactType2016(conn, countryCode, cYear, working_directory):
 
                 sqldropValues = '''DROP TABLE IF EXISTS DistinctValues; '''
 
-                sqlDistinct = '''CREATE TEMPORARY TABLE DistinctValues AS SELECT DISTINCT euGroundWaterBodyCode,
+                sqlDistinct = '''CREATE TEMPORARY TABLE DistinctValues AS SELECT DISTINCT euGroundWaterBodyCode, cYear,
                                                          cArea AS A
                                            FROM SOW_GWB_gwSignificantImpactType
                                           WHERE cYear = ''' + str(cYear) + ''' AND 
@@ -1851,6 +1851,7 @@ def gwSignificantImpactType2016(conn, countryCode, cYear, working_directory):
                 sqlDropArea = '''DROP TABLE IF EXISTS DistinctArea; '''
 
                 sqlArea = '''CREATE TEMPORARY TABLE DistinctArea AS SELECT DISTINCT euGroundWaterBodyCode,
+                                                        cYear,
                                                        cArea AS G
                                          FROM SOW_GWB_gwSignificantImpactType
                                         WHERE cYear = ''' + str(cYear) + ''' AND 
@@ -2410,7 +2411,7 @@ def sw_delineation_of_the_management_units_in_the_1st_and_2nd_RBMP(conn, country
             cur.execute(createUnchange)
             cur.execute(createOther)
             data = cur.execute(final).fetchall()
-            print(data)
+
             write.writerows(data)
 
 
