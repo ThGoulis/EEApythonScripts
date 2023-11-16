@@ -38,19 +38,22 @@ if __name__ == '__main__':
     conn = create_connection(database)
     st = time.time()
 
+    function.updateTables(conn)
+
     function.rbdCodeNames(conn, countryCode, 2016, working_directory)
+
+    function.Surface_water_bodies_Failing_notUnknown_by_RBD2016(conn, countryCode, 2016, working_directory)
+
+    function.Groundwater_bodies_Quantitative_Exemption_Type(conn, countryCode, 2016, working_directory)
+    function.swRBsPollutants(conn, countryCode, 2016, working_directory)
+    function.SOW_GWB_gwPollutant_Table(conn, countryCode, 2016, working_directory)
+    function.gwChemical_exemptions_and_pressures(conn, countryCode, 2016, working_directory)
+    function.Ground_water_bodies_Failing_notUnknown_by_RBD(conn, countryCode, 2016, working_directory)
+    function.Ground_water_bodies_Failing_notUnknown_by_Country(conn, countryCode, 2016, working_directory)
+    function.Surface_water_bodies_Failing_notUnknown_by_Country(conn, countryCode, 2016, working_directory)
+    function.SOW_GWB_gwSignificantPressureType_NumberOfImpact_by_country(conn, countryCode, 2016, working_directory)
     function.swChemical_by_Country_2016(conn, countryCode, 2016, working_directory)
     function.WISE_SOW_SurfaceWaterBody_SWB_Table(conn, countryCode, 2016, working_directory)
-    function.Surface_water_bodies_Failing_notUnknown_by_RBD2016(conn, countryCode, 2016, working_directory)
-    function.swRBsPollutants(conn, countryCode, 2016, working_directory)
-    function.Groundwater_bodies_Quantitative_Exemption_Type(conn, countryCode, 2016, working_directory)
-    function.gwChemical_exemptions_and_pressures(conn, countryCode, 2016, working_directory)
-    function.SOW_GWB_gwSignificantPressureType_NumberOfImpact_by_country(conn, countryCode, 2016, working_directory)
-    function.SOW_GWB_gwPollutant_Table(conn, countryCode, 2016, working_directory)
-    function.Ground_water_bodies_Failing_notUnknown_by_Country(conn, countryCode, 2016, working_directory)
-    function.Ground_water_bodies_Failing_notUnknown_by_RBD(conn, countryCode, 2016, working_directory)
-    function.Surface_water_bodies_Failing_notUnknown_by_Country(conn, countryCode, 2016, working_directory)
-
     function.gwSignificantImpactType2016(conn, countryCode, 2016, working_directory)
     function.WISE_SOW_SurfaceWaterBody_SWB_Category(conn, countryCode, 2016, working_directory)
     function.Surface_water_bodies_Ecological_exemptions_and_pressures(conn, countryCode, 2016, working_directory)

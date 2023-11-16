@@ -1,7 +1,20 @@
 import csv
 
 
+def updateTables(conn):
+    cur = conn.cursor()
+
+    update1 = '''UPDATE swRBD_Europe_data SET C_StatusFailing = REPLACE(REPLACE(REPLACE(C_StatusFailing, ' ', ''), '\t', ''), '\n', '');'''
+    update2 = '''UPDATE swRBD_Europe_data SET C_StatusKnown = REPLACE(REPLACE(REPLACE(C_StatusKnown, ' ', ''), '\t', ''), '\n', '');'''
+
+    cur.execute(update1)
+    conn.commit()
+    cur.execute(update2)
+    conn.commit()
+
+
 def rbdCodeNames(conn, countryCode, cYear, working_directory):
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_GWB_Status_Maps/GWB_Status_RBD?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory +'rbdCodeNames'+str(cYear)+'.csv',
             'w+', newline='') as f:
@@ -24,7 +37,7 @@ def rbdCodeNames(conn, countryCode, cYear, working_directory):
 
 
 def WISE_SOW_SurfaceWaterBody_SWB_Table(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SurfaceWaterBody/SWB_NumberSize?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SurfaceWaterBody/SWB_NumberSize?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '1.surfaceWaterBodyNumberAndSite2016.csv',
             'w+', newline='') as f:
@@ -32,24 +45,113 @@ def WISE_SOW_SurfaceWaterBody_SWB_Table(conn, countryCode, cYear, working_direct
         write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
-        for country in countryCode:
-            data = cur.execute('''SELECT DISTINCT NUTS0,
-                C_Number,
-                CASE WHEN C_Number_Percent = "" THEN C_Number_Percent ELSE round(C_Number_Percent, 1) END,
-                round(C_Length,1),
-                CASE WHEN C_Length_Percent = "" THEN C_Length_Percent ELSE round(C_Length_Percent, 1) END,
-                round(C_Area,1),
-                CASE WHEN C_Area_Percent = "" THEN C_Area_Percent ELSE round(C_Area_Percent, 1) END,
-                CASE WHEN Median_C_Length = "" THEN Median_C_Length ELSE round(Median_C_Length, 1) END,
-                CASE WHEN Median_C_Area = "" THEN Median_C_Area ELSE round(Median_C_Area, 1) END
-              FROM SWB_NumberSize_B_data
-            where NUTS0 = ?''', (country,)).fetchall()
-            
-            write.writerows(data)
+        country = ''.join(countryCode)
+        dropMedianArea = '''drop table if exists swMedianArea;'''
+
+        MedianArea = '''CREATE TEMPORARY TABLE swMedianArea AS SELECT countryCode,
+                                              round(AVG(cArea), 1) AS medianArea
+                                         FROM (
+                                                  SELECT countryCode,
+                                                         cArea
+                                                    FROM SOW_SWB_SurfaceWaterBody
+                                                   WHERE countryCode = "''' + country + '''" AND 
+                                                         countryCode IS NOT NULL AND 
+                                                         cArea IS NOT NULL AND 
+                                                         cYear = ''' + str(cYear) + '''
+                                                   ORDER BY cArea
+                                                   LIMIT 2 - (
+                                                                 SELECT COUNT( * ) 
+                                                                   FROM SOW_SWB_SurfaceWaterBody
+                                                                  WHERE countryCode = "''' + country + '''" AND 
+                                                                        countryCode IS NOT NULL AND 
+                                                                        cArea IS NOT NULL AND 
+                                                                        cYear = ''' + str(cYear) + '''
+                                                             )
+%                                                            2 OFFSET (
+                                                             SELECT (COUNT( * ) - 1) / 2
+                                                               FROM SOW_SWB_SurfaceWaterBody
+                                                              WHERE countryCode = "''' + country + '''" AND 
+                                                                    countryCode IS NOT NULL AND 
+                                                                    cArea IS NOT NULL AND 
+                                                                    cYear = ''' + str(cYear) + '''
+                                                              GROUP BY countryCode = "''' + country + '''"
+                                                         )
+                                              );'''
+
+        dropMedianLength = '''drop table if exists swMedianLength; '''
+
+        MedianLength = '''CREATE TEMPORARY TABLE swMedianLength AS SELECT countryCode,
+                                                round(AVG(cLength), 1) AS medianLength
+                                           FROM (
+                                                    SELECT countryCode,
+                                                           cLength
+                                                      FROM SOW_SWB_SurfaceWaterBody
+                                                     WHERE countryCode = "''' + country + '''" AND 
+                                                           countryCode IS NOT NULL AND 
+                                                           cLength IS NOT NULL AND 
+                                                           cYear = ''' + str(cYear) + '''
+                                                     ORDER BY cLength
+                                                     LIMIT 2 - (
+                                                                   SELECT COUNT( * ) 
+                                                                     FROM SOW_SWB_SurfaceWaterBody
+                                                                    WHERE countryCode = "''' + country + '''" AND 
+                                                                          countryCode IS NOT NULL AND 
+                                                                          cLength IS NOT NULL AND 
+                                                                          cYear = ''' + str(cYear) + '''
+                                                               )
+%                                                              2 OFFSET (
+                                                               SELECT (COUNT( * ) - 1) / 2
+                                                                 FROM SOW_SWB_SurfaceWaterBody
+                                                                WHERE countryCode = "''' + country + '''" AND 
+                                                                      countryCode IS NOT NULL AND 
+                                                                      cLength IS NOT NULL AND 
+                                                                      cYear = ''' + str(cYear) + '''
+                                                                GROUP BY countryCode = "''' + country + '''"
+                                                           )
+                                                );'''
+
+        final = '''SELECT countryCode,
+                   count(euSurfaceWaterBodyCode),
+                   round(count(euSurfaceWaterBodyCode) * 100 / (
+                                                 SELECT round(count(euSurfaceWaterBodyCode)) 
+                                                   FROM SOW_SWB_SurfaceWaterBody
+                                                  WHERE cYear = ''' + str(cYear) + '''
+                                             ), 1),
+                   round(sum(cLength) ),
+                   round(sum(cLength) * 100.0 / (
+                                      SELECT sum(cLength) 
+                                        FROM SOW_SWB_SurfaceWaterBody
+                                       WHERE cYear = ''' + str(cYear) + '''
+                                   ), 1) ,
+                   round(sum(cArea) ),
+                   round(sum(cArea) * 100.0 / (
+                                      SELECT sum(cArea) 
+                                        FROM SOW_SWB_SurfaceWaterBody
+                                       WHERE cYear = ''' + str(cYear) + '''
+                                  ), 1),
+                   (
+                       SELECT medianLength
+                         FROM swMedianLength
+                   ),
+                   (
+                       SELECT medianArea
+                         FROM swMedianArea
+                   )
+              FROM SOW_SWB_SurfaceWaterBody
+             WHERE cYear = ''' + str(cYear) + ''' AND 
+                   countryCode = "''' + country + '''";'''
+
+        cur.execute(dropMedianArea)
+        cur.execute(MedianArea)
+        cur.execute(dropMedianLength)
+        cur.execute(MedianLength)
+        data = cur.execute(final).fetchall()
+
+        write.writerows(data)
             
             
 def WISE_SOW_SurfaceWaterBody_SWB_Category(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SurfaceWaterBody/SWB_CategoryType?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SurfaceWaterBody/SWB_CategoryType?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
 
     headers = ["Country", "Year", 'Surface Water Body Category', "Type", "Total"]
     with open(
@@ -79,7 +181,7 @@ def WISE_SOW_SurfaceWaterBody_SWB_Category(conn, countryCode, cYear, working_dir
                     
 
 def Surface_water_bodies_Ecological_exemptions_and_pressures(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_SWE_swEcologicalExemptionPressure/SWB_SWE_swEcologicalExemptionPressure?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SWB_SWE_swEcologicalExemptionPressure/SWB_SWE_swEcologicalExemptionPressure?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '6.Surface_water_bodies_Ecological_exemptions_and_pressures2016.csv',
             'w+', newline='') as f:
@@ -110,7 +212,7 @@ def Surface_water_bodies_Ecological_exemptions_and_pressures(conn, countryCode, 
             
 
 def Surface_water_bodies_Ecological_exemptions_Type(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_SWEcologicalExemptionType/SWB_SWEcologicalExemptionType?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SWB_SWEcologicalExemptionType/SWB_SWEcologicalExemptionType?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '6.Surface_water_bodies_Ecological_exemptions_Type2016.csv',
             'w+', newline='') as f:
@@ -140,7 +242,7 @@ def Surface_water_bodies_Ecological_exemptions_Type(conn, countryCode, cYear, wo
                 
 
 def Surface_water_bodies_Quality_element_exemptions_Type(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_QE_qeEcologicalExemptionType/SWB_QE_qeEcologicalExemptionType?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SWB_QE_qeEcologicalExemptionType/SWB_QE_qeEcologicalExemptionType?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '6.Surface_water_bodies_Quality_element_exemptions_Type2016.csv',
             'w+', newline='') as f:
@@ -169,7 +271,7 @@ def Surface_water_bodies_Quality_element_exemptions_Type(conn, countryCode, cYea
                 
 
 def SWB_Chemical_exemption_type(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_SWP_SWChemicalExemptionType/SWB_SWP_SWChemicalExemptionType?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SWB_SWP_SWChemicalExemptionType/SWB_SWP_SWChemicalExemptionType?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ["Country", "Chemical Exemption Type Group", "Chemical Exemption Type", "Area (km^2)", "Area (%)"]
     with open(
             working_directory + '6.swChemical_exemption_type2016.csv',
@@ -250,7 +352,7 @@ def SWB_Chemical_exemption_type(conn, countryCode, cYear, working_directory):
 
 
 def WISE_SOW_SurfaceWaterBody_SWB_ChemicalStatus_Table(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SurfaceWaterBody/SWB_ChemicalStatus?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SurfaceWaterBody/SWB_ChemicalStatus?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ['Country', 'Year', "Chemical Status Value", 'Number', 'Number(%)', 'Length (km)', 'Length(%)', 'Area (km^2)', 'Area(%)']
     with open(
             working_directory + '12.surfaceWaterBodyChemicalStatusGood2016.csv',
@@ -306,7 +408,7 @@ def WISE_SOW_SurfaceWaterBody_SWB_ChemicalStatus_Table(conn, countryCode, cYear,
                 
 
 def SurfaceWaterBody_ChemicalStatus_Table_by_Category(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SurfaceWaterBody/SWB_Category_ChemicalStatus?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SurfaceWaterBody/SWB_Category_ChemicalStatus?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ['Country', 'Year', 'Surface Water Body Category', 'Chemical Status Value', 'Number', 'Number(%)']
     with open(
             # ιδιο για 10 12
@@ -346,7 +448,7 @@ def SurfaceWaterBody_ChemicalStatus_Table_by_Category(conn, countryCode, cYear, 
 
 
 def Surface_water_bodies_Ecological_status_or_potential_groupGoodHigh(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SurfaceWaterBody/SWB_EcologicalStatusGroup?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SurfaceWaterBody/SWB_EcologicalStatusGroup?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ["Country", "Year", "Number", "Number(%)", "Length (km)", "Length(%)", "Area (km^2)", "Area(%)"]
     with open(
             working_directory + '8.Surface_water_bodies_Ecological_status_or_potential_group_Good_High.csv',
@@ -411,7 +513,7 @@ def Surface_water_bodies_Ecological_status_or_potential_groupGoodHigh(conn, coun
             
 
 def Surface_water_bodies_Ecological_status_or_potential_groupFailling(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SurfaceWaterBody/SWB_EcologicalStatusGroup?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SurfaceWaterBody/SWB_EcologicalStatusGroup?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ["Country", "Year", "Number", "Number(%)", "Length (km)", "Length(%)", "Area (km^2)", "Area(%)"]
     with open(
             working_directory + '8.Surface_water_bodies_Ecological_status_or_potential_group_Failing.csv',
@@ -477,7 +579,7 @@ def Surface_water_bodies_Ecological_status_or_potential_groupFailling(conn, coun
             
 
 def swEcologicalStatusOrPotential_RW_LW_Category2ndRBMP2016(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SurfaceWaterBody/SWB_Category_EcologicalStatus?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SurfaceWaterBody/SWB_Category_EcologicalStatus?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ["Country", "Year", "Surface Water Body Category", "Ecological Status Or Potential Value", "Number"]
     with open(
             working_directory + '8.swEcologicalStatusOrPotential_RW_LW_Category2ndRBMP2016.csv',
@@ -502,7 +604,7 @@ def swEcologicalStatusOrPotential_RW_LW_Category2ndRBMP2016(conn, countryCode, c
                     
 
 def swEcologicalStatusOrPotential_Unknown_Category2ndRBMP2016(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SurfaceWaterBody/SWB_Category_EcologicalStatus?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SurfaceWaterBody/SWB_Category_EcologicalStatus?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ["Country", "Year", "Surface Water Body Category", "Ecological Status Or Potential Value", "Number"]
     with open(
             working_directory + '9.swEcologicalStatusOrPotential_Unknown_Category2ndRBMP2016.csv',
@@ -580,7 +682,7 @@ def swEcologicalStatusOrPotentialChemical_by_Country(conn, countryCode, cYear, w
 
 
 def swEcologicalStatusOrPotentialValue_swChemicalStatusValue_by_Country_by_Categ(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_Status/SWB_Status_Country?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_Status/SWB_Status_Country?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '15.swEcologicalStatusOrPotentialValue_swChemicalStatusValue_by_Country_by_Categ.csv',
             'w+', newline='') as f:
@@ -662,7 +764,7 @@ def swEcologicalStatusOrPotentialValue_swChemicalStatusValue_by_Country_by_Categ
 
 
 def Surface_water_bodies_Failing_notUnknown_by_RBD2016(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_Status_Maps/SWB_Status_RBD?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SWB_Status_Maps/SWB_Status_RBD?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '17.Surface_water_bodies_Failing_notUnknown_by_RBD2016.csv',
             'w+', newline='') as f:
@@ -721,15 +823,26 @@ def swRBsPollutants(conn, countryCode, cYear, working_directory):
         write.writerow(headers)
         cur = conn.cursor()
 
-        for country in countryCode:
-            data = cur.execute( '''select NUTS0, River_Basin_Specific_Pollutant, 
-                        C_NumberLengthAreaD, C_NumberLengthAreaDPercentPane
-                        from SWB_FailingRBSP_B_data
-                        where NUTS0 = "''' + country + '''"
-                        group by NUTS0, River_Basin_Specific_Pollutant;
-                        ''').fetchall()
+        country = ''.join(countryCode)
+
+        data = cur.execute('''SELECT countryCode,
+                               swFailingRBSP,
+                               count(euSurfaceWaterBodyCode),
+                               round(count(euSurfaceWaterBodyCode) * 100 / (
+                                                                               SELECT count(DISTINCT euSurfaceWaterBodyCode) 
+                                                                                 FROM SOW_SWB_FailingRBSP
+                                                                                WHERE countryCode = "''' + country + '''" AND 
+                                                                                      cYear = 2016 AND 
+                                                                                      swFailingRBSP <> "None"
+                                                                           )
+                               ) 
+                          FROM SOW_SWB_FailingRBSP
+                         WHERE countryCode = "''' + country + '''" AND
+                               cYear = 2016 AND 
+                               swFailingRBSP <> "None"
+                         GROUP BY swFailingRBSP;''').fetchall()
             
-            write.writerows(data)
+        write.writerows(data)
             
 def swEcologicalStatusOrPotentialExpectedGoodIn2015(conn, countryCode, cYear, working_directory):
     with open(
@@ -874,26 +987,75 @@ def GroundWaterBodyCategory2016(conn, countryCode, cYear, working_directory):
         write = csv.writer(f)
         write.writerow(header)
         cur = conn.cursor()
-        for country in countryCode:
-            data = cur.execute('''SELECT A.countryCode, A.cYear, COUNT(Distinct A.euGroundWaterBodyCode), 
-                        ROUND(COUNT(DISTINCT A.euGroundWaterBodyCode) * 100.0 / ( 
-                        SELECT COUNT(euGroundWaterBodyCode) FROM SOW_GWB_GroundWaterBody WHERE cYear == 2016
-                        ),1), 
-                        ROUND(SUM(DISTINCT A.cArea),0), 
-                        ROUND(SUM(DISTINCT A.cArea) * 100.0 / ( 
-                        SELECT SUM(cArea) FROM SOW_GWB_GroundWaterBody WHERE cYear == 2016
-                        ),1),
-                        B.gwMedianArea
-                        FROM SOW_GWB_GroundWaterBody A JOIN SOW_GWB_GWB_MedianValues B ON A.countryCode = B.Country 
-                        where A.cYear == 2016 and 
-                        A.countryCode = "''' + country + '''"
-                        GROUP BY countryCode;''').fetchall()
-            
-            write.writerows(data)
+        country = ''.join(countryCode)
+
+        dropMedianArea = '''DROP TABLE IF EXISTS GWMedian;'''
+
+        MedianArea = '''CREATE TEMPORARY TABLE GWMedian AS SELECT countryCode,
+                                          cYear,
+                                          round(AVG(cArea), 1) AS median
+                                     FROM (
+                                              SELECT countryCode,
+                                                     cYear,
+                                                     cArea
+                                                FROM SOW_GWB_GroundWaterBody
+                                               WHERE countryCode = "''' + country + '''" AND 
+                                                     countryCode IS NOT NULL AND 
+                                                     cArea IS NOT NULL AND 
+                                                     cYear = ''' + str(cYear) + '''
+                                               ORDER BY cArea
+                                               LIMIT 2 - (
+                                                             SELECT COUNT( * ) 
+                                                               FROM SOW_GWB_GroundWaterBody
+                                                              WHERE countryCode = "''' + country + '''" AND 
+                                                                    countryCode IS NOT NULL AND 
+                                                                    cArea IS NOT NULL AND 
+                                                                    cYear = ''' + str(cYear) + '''
+                                                         )
+                                              %      2 OFFSET (
+                                                         SELECT (COUNT( * ) - 1) / 2
+                                                           FROM SOW_GWB_GroundWaterBody
+                                                          WHERE countryCode = "''' + country + '''" AND 
+                                                                countryCode IS NOT NULL AND 
+                                                                cArea IS NOT NULL AND 
+                                                                cYear = ''' + str(cYear) + '''
+                                                          GROUP BY countryCode = "''' + country + '''"
+                                                     )
+                                          );'''
+
+        final = '''SELECT countryCode,
+                       cYear,
+                       count(groundWaterBodyName),
+                       round(count(groundWaterBodyName) * 100.0 / (
+                                                                      SELECT round(count(groundWaterBodyName) ) 
+                                                                        FROM SOW_GWB_GroundWaterBody
+                                                                        where cYear = ''' + str(cYear) + '''
+                                                                  )
+                       ,1),
+                       round(sum(cArea) ),
+                       round(sum(cArea) * 100.0 / (
+                                                      SELECT round(sum(cArea) )
+                                                        FROM SOW_GWB_GroundWaterBody
+                                                        where cYear = ''' + str(cYear) + '''
+                                                  )
+                       ,1),
+                       (
+                           SELECT median
+                             FROM GWMedian
+                       )
+                  FROM SOW_GWB_GroundWaterBody
+                 WHERE cYear = ''' + str(cYear) + ''' AND 
+                       countryCode = "''' + country + '''";
+                '''
+        cur.execute(dropMedianArea)
+        cur.execute(MedianArea)
+        data = cur.execute(final).fetchall()
+
+        write.writerows(data)
 
 
 def Groundwater_bodies_Chemical_Exemption_Type(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_GWB_GWP_GWChemicalExemptionType/GWB_GWP_GWChemicalExemptionType?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_GWB_GWP_GWChemicalExemptionType/GWB_GWP_GWChemicalExemptionType?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '7.Groundwater_bodies_Chemical_Exemption_Type2016.csv',
             'w+', newline='') as f:
@@ -989,7 +1151,7 @@ def Groundwater_bodies_Chemical_Exemption_Type(conn, countryCode, cYear, working
 
 
 def Groundwater_bodies_Quantitative_Exemption_Type(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_GWB_gwQuantitativeExemptionType/GWB_gwQuantitativeExemptionType?:isGuestRedirectFromVizportal=y&:embed=y
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_GWB_gwQuantitativeExemptionType/GWB_gwQuantitativeExemptionType?:isGuestRedirectFromVizportal=y&:embed=y
     with open(
             working_directory + '7.Groundwater_bodies_Quantitative_Exemption_Type2016.csv',
             'w+', newline='') as f:
@@ -998,39 +1160,150 @@ def Groundwater_bodies_Quantitative_Exemption_Type(conn, countryCode, cYear, wor
         write.writerow(header)
 
         cur = conn.cursor()
-        for country in countryCode:
-            data = cur.execute('''SELECT NUTS0, Exemption_group, Exemption_type, C_NumberAreaD, C_NumberAreaDPercentPane * 100.0   
-                            FROM GWB_gwQuantitativeExemptionType_B_data 
-                               where NUTS0 = "''' + country + '''"
-                            GROUP BY NUTS0, Exemption_group, Exemption_type ''').fetchall()
-            
-            write.writerows(data)
+
+        country = ''.join(countryCode)
+
+        gwQuantitativeExemptionTypeGroup = cur.execute('''select distinct gwQuantitativeExemptionTypeGroup 
+                                from SOW_GWB_gwQuantitativeExemptionPressure 
+                                where countryCode = "''' + country + '''" and cYear = 2016''').fetchall()
+
+        gwQuantitativeExemptionType = cur.execute('''select distinct gwQuantitativeExemptionType
+                                from SOW_GWB_gwQuantitativeExemptionPressure 
+                                where countryCode = "''' + country + '''" and cYear = 2016''').fetchall()
+
+        gwQuantitativeExemptionPressureGroup = cur.execute('''select distinct gwQuantitativeExemptionPressureGroup
+                                from SOW_GWB_gwQuantitativeExemptionPressure 
+                                where countryCode = "''' + country + '''" and cYear = 2016''').fetchall()
+
+        gwQuantitativeExemptionPressure = cur.execute('''select distinct gwQuantitativeExemptionPressure
+                                        from SOW_GWB_gwQuantitativeExemptionPressure 
+                                        where countryCode = "''' + country + '''" and cYear = 2016''').fetchall()
+
+        for temp1 in gwQuantitativeExemptionTypeGroup:
+            for temp2 in gwQuantitativeExemptionType:
+                for temp3 in gwQuantitativeExemptionPressureGroup:
+                    for temp4 in gwQuantitativeExemptionPressure:
+                        gwcetg = ''.join(temp1)
+                        gwcet = ''.join(temp2)
+                        gwcepg = ''.join(temp3)
+                        gwcep = ''.join(temp4)
+
+                        droptable = '''DROP TABLE IF EXISTS distinctvalues;'''
+
+                        createtable = '''CREATE TEMPORARY TABLE IF NOT EXISTS distinctvalues AS SELECT DISTINCT countryCode,
+                                                                                       euGroundWaterBodyCode,
+                                                                                       cArea
+                                                                         FROM SOW_GWB_gwQuantitativeExemptionPressure
+                                                                        WHERE countryCode = "''' + country + '''" AND 
+                                                                              cYear = 2016 AND 
+                                                                              gwQuantitativeExemptionTypeGroup = "''' + gwcetg + '''" AND 
+                                                                              gwQuantitativeExemptionType = "''' + gwcet + '''" AND 
+                                                                              gwQuantitativeExemptionPressureGroup = "''' + gwcepg + '''" AND 
+                                                                              gwQuantitativeExemptionPressure = "''' + gwcep + '''";'''
+
+                        data = '''SELECT countryCode,
+                                   gwQuantitativeExemptionTypeGroup,
+                                   gwQuantitativeExemptionType,
+                                   gwQuantitativeExemptionPressureGroup,
+                                   gwQuantitativeExemptionPressure,
+                                   (
+                                       SELECT round(sum(cArea) ) 
+                                         FROM distinctvalues
+                                   )
+                              FROM SOW_GWB_gwQuantitativeExemptionPressure
+                             WHERE countryCode = "''' + country + '''" AND 
+                                   cYear = 2016 AND 
+                                   gwQuantitativeExemptionTypeGroup = "''' + gwcetg +'''" AND 
+                                   gwQuantitativeExemptionType = "''' + gwcet + '''" AND 
+                                   gwQuantitativeExemptionPressureGroup = "''' + gwcepg + '''" AND 
+                                   gwQuantitativeExemptionPressure = "''' + gwcep + '''"
+                             GROUP BY gwQuantitativeExemptionTypeGroup,
+                                   gwQuantitativeExemptionType,
+                                   gwQuantitativeExemptionPressureGroup,
+                                   gwQuantitativeExemptionPressure;'''
+
+                        cur.execute(droptable)
+                        cur.execute(createtable)
+                        alldata = cur.execute(data).fetchall()
+                        write.writerows(alldata)
             
 
 def gwChemical_exemptions_and_pressures(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_GWB_GWP_GWChemicalExemptionPressure/GWB_GWP_GWC_gwChemicalExemptionPressure?:isGuestRedirectFromVizportal=y&:embed=y
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_GWB_GWP_GWChemicalExemptionPressure/GWB_GWP_GWC_gwChemicalExemptionPressure?:isGuestRedirectFromVizportal=y&:embed=y
     with open(working_directory + '7.gwChemical_exemptions_and_pressures.csv', 'w+', newline='') as f:
         header = ["Country",  "Chemical Exemption Type Group", "Chemical Exemption Type", "Chemical Pressure Type Group", "Chemical Pressure Type", "Area (km^2)"]
         write = csv.writer(f)
         write.writerow(header)
 
         cur = conn.cursor()
-        for country in countryCode:
-            data = cur.execute('''SELECT NUTS0,
-                               Exemption_group,
-                               Exemption_type,Pressure_group,
-                               Pressure,
-                               round(Area)
-                          FROM GWB_GWP_GWC_gwChemicalExemptionPressure_B_data
-                          where NUTS0 = "''' + country + '''"
-                         GROUP BY NUTS0,
-                                  Exemption_group,
-                                  Exemption_type, Pressure_group, Pressure;''').fetchall()
-            write.writerows(data)
+
+        country = ''.join(countryCode)
+        gwChemicalExemptionTypeGroup = cur.execute('''select distinct gwChemicalExemptionTypeGroup 
+                                from SOW_GWB_GWP_GWC_gwChemicalExemptionPressure 
+                                where countryCode = "''' + country + '''" and cYear = 2016''').fetchall()
+
+        gwChemicalExemptionType = cur.execute('''select distinct gwChemicalExemptionType
+                                from SOW_GWB_GWP_GWC_gwChemicalExemptionPressure 
+                                where countryCode = "''' + country + '''" and cYear = 2016''').fetchall()
+
+        gwChemicalExemptionPressureGroup = cur.execute('''select distinct gwChemicalExemptionPressureGroup
+                                from SOW_GWB_GWP_GWC_gwChemicalExemptionPressure 
+                                where countryCode = "''' + country + '''" and cYear = 2016''').fetchall()
+
+        gwChemicalExemptionPressure = cur.execute('''select distinct gwChemicalExemptionPressure
+                                        from SOW_GWB_GWP_GWC_gwChemicalExemptionPressure 
+                                        where countryCode = "''' + country + '''" and cYear = 2016''').fetchall()
+
+        for temp1 in gwChemicalExemptionTypeGroup:
+            for temp2 in gwChemicalExemptionType:
+                for temp3 in gwChemicalExemptionPressureGroup:
+                    for temp4 in gwChemicalExemptionPressure:
+                        gwcetg = ''.join(temp1)
+                        gwcet = ''.join(temp2)
+                        gwcepg = ''.join(temp3)
+                        gwcep = ''.join(temp4)
+                        droptable = '''DROP TABLE IF EXISTS distinctvalues;'''
+
+                        createtable = '''CREATE TEMPORARY TABLE IF NOT EXISTS distinctvalues AS SELECT DISTINCT countryCode,
+                                                                                       euGroundWaterBodyCode,
+                                                                                       cArea
+                                                                         FROM SOW_GWB_GWP_GWC_gwChemicalExemptionPressure
+                                                                        WHERE countryCode = "''' + country + '''" AND 
+                                                                              cYear = 2016 AND 
+                                                                              gwChemicalExemptionTypeGroup = "''' + gwcetg + '''" AND 
+                                                                              gwChemicalExemptionType = "''' + gwcet + '''" AND 
+                                                                              gwChemicalExemptionPressureGroup = "''' + gwcepg + '''" AND 
+                                                                              gwChemicalExemptionPressure = "''' + gwcep + '''";'''
+
+                        data = '''SELECT countryCode,
+                                       gwChemicalExemptionTypeGroup,
+                                       gwChemicalExemptionType,
+                                       gwChemicalExemptionPressureGroup,
+                                       gwChemicalExemptionPressure,
+                                       (
+                                           SELECT round(sum(cArea) )
+                                             FROM distinctvalues
+                                       )
+                                  FROM SOW_GWB_GWP_GWC_gwChemicalExemptionPressure
+                                 WHERE countryCode = "''' + country + '''" AND 
+                                       cYear = 2016 AND 
+                                       gwChemicalExemptionTypeGroup = "''' + gwcetg + '''" AND 
+                                       gwChemicalExemptionType = "''' + gwcet + '''" AND 
+                                       gwChemicalExemptionPressureGroup = "''' + gwcepg + '''" AND 
+                                       gwChemicalExemptionPressure = "''' + gwcep + '''"
+                                       group by gwChemicalExemptionTypeGroup,
+                                       gwChemicalExemptionType,
+                                       gwChemicalExemptionPressureGroup,
+                                       gwChemicalExemptionPressure;'''
+                        cur.execute(droptable)
+                        cur.execute(createtable)
+                        alldata = cur.execute(data).fetchall()
+
+                        write.writerows(alldata)
             
 
 def Groundwater_bodies_Quantitative_exemptions_and_pressures(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_GWB_gwQuantitativeExemptionPressure/GWB_gwQuantitativeExemptionPressure?:isGuestRedirectFromVizportal=y&:embed=y
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_GWB_gwQuantitativeExemptionPressure/GWB_gwQuantitativeExemptionPressure?:isGuestRedirectFromVizportal=y&:embed=y
     with open(
             working_directory + '7.Groundwater_bodies_Quantitative_exemptions_and_pressures2016.csv',
             'w+', newline='') as f:
@@ -1104,7 +1377,7 @@ def SOW_GWB_GroundWaterBody_GWB_Quantitative_status(conn, countryCode, cYear, wo
                
 
 def gwQuantitativeStatusValue_gwChemicalStatusValue(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_Status/GWB_Status_Country?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_Status/GWB_Status_Country?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '22.gwQuantitativeStatusValue_Percent_Country_2016.csv',
             'w+', newline='') as f:
@@ -1213,17 +1486,39 @@ def SOW_GWB_gwChemicalReasonsForFailure_Table(conn, countryCode, cYear, working_
         header = ["Country", "Year", "Chemical Status Value", "Chemical Reasons For Failure", 'Area (km^2)', "Area(%)"]
         write = csv.writer(f)
         write.writerow(header)
-        gwAtRiskChemical = ["No", "Yes"]
         cur = conn.cursor()
         for country in countryCode:
-            for types in gwAtRiskChemical:
-                data = cur.execute(
-                    'select countryCode, cYear, gwChemicalStatusValue,gwAtRiskChemical, sum(cArea) '
-                'from SOW_GWB_gwChemicalReasonsForFailure '
-                'where countryCode = ? and cYear == ?' 
-                'and gwAtRiskChemical <> "Annex 0" and gwAtRiskChemical <> "unpopulated" '
-                'and gwAtRiskChemical = ? ', (country, cYear, types)).fetchall()
-            write.writerows(data)
+            droptable = '''DROP TABLE IF EXISTS tempvalues;'''
+
+            createtable = '''CREATE TABLE tempvalues AS SELECT DISTINCT countryCode,
+                                       euGroundWaterBodyCode,
+                                       cArea
+                         FROM SOW_GWB_gwChemicalReasonsForFailure
+                        WHERE cYear = 2016 AND 
+                              countryCode = "''' + country + '''" AND 
+                              gwChemicalStatusValue = 3;'''
+
+
+            data = '''SELECT countryCode,
+                               cYear,
+                               gwChemicalStatusValue,
+                               gwChemicalReasonsForFailure,
+                               round(sum(cArea) ),
+                               round(sum(cArea)  * 100 / (
+                                                  SELECT sum(cArea) 
+                                                    FROM tempvalues
+                                            ))
+                          FROM SOW_GWB_gwChemicalReasonsForFailure
+                         WHERE countryCode = "''' + country + '''" AND 
+                               cYear == 2016 AND 
+                               gwAtRiskChemical <> "Annex 0" AND 
+                               gwAtRiskChemical <> "unpopulated" AND 
+                               gwChemicalStatusValue = 3;'''
+
+            cur.execute(droptable)
+            cur.execute(createtable)
+            alldata = cur.execute(data).fetchall()
+            write.writerows(alldata)
                 
 
 def gwChemicalStatusValue_Table(conn, countryCode, cYear, working_directory):
@@ -1410,7 +1705,7 @@ def gwChemicalAssessmentConfidence(conn, countryCode, cYear, working_directory):
            
 
 def Number_of_groundwater_bodies_failing_to_achieve_good_status(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_GWB_GWP_GWChemicalExemptionPressure/GWB_GWP_GWC_gwChemicalExemptionPressure?:isGuestRedirectFromVizportal=y&:embed=y
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_GWB_GWP_GWChemicalExemptionPressure/GWB_GWP_GWC_gwChemicalExemptionPressure?:isGuestRedirectFromVizportal=y&:embed=y
     with open(
             working_directory + '37.Number_of_groundwater_bodies_failing_to_achieve_good_status.csv',
             'w+', newline='') as f:
@@ -1435,7 +1730,7 @@ def Number_of_groundwater_bodies_failing_to_achieve_good_status(conn, countryCod
 
 
 def geologicalFormation(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_GroundWaterBody/GWB_Category?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_GroundWaterBody/GWB_Category?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '38.GWB_geologicalFormation2016.csv',
             'w+', newline='') as f:
@@ -1562,7 +1857,7 @@ def swNumber_of_Impacts_by_country(conn, countryCode, cYear, working_directory):
 
 
 def swSignificant_Pressure_Type_Table2016(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_PressuresImpacts/SWB_Pressures?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_PressuresImpacts/SWB_Pressures?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ['Country','Significant Pressure Type Group', 'Significant Pressure Type', 'Number', 'Number(%)']
     with open(
             working_directory + '4.swSignificant_Pressure_Type_Table2016.csv',
@@ -1613,7 +1908,7 @@ def swSignificant_Pressure_Type_Table2016(conn, countryCode, cYear, working_dire
 
 
 def SignificantImpactType_Table2016(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_PressuresImpacts/SWB_Impacts?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_PressuresImpacts/SWB_Impacts?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '4.SignificantImpactType_Table2016.csv',
             'w+', newline='') as f:
@@ -1650,7 +1945,7 @@ def SignificantImpactType_Table2016(conn, countryCode, cYear, working_directory)
 
 
 def swSignificantImpactType_Table_Other2016(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_PressuresImpacts/SWB_Impacts_Other?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_PressuresImpacts/SWB_Impacts_Other?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ['Country', 'Significant Impact Other', 'Number', 'Number(%)']
     with open(
             working_directory + '4.swSignificantImpactType_Table_Other2016.csv',
@@ -1790,7 +2085,7 @@ def gwSignificantImpactTypeByCountry(conn, countryCode, cYear, working_directory
 
 
 def swChemical_by_Country_2016(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_Status_Compare/SWB_ChemicalStatus_Country?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SWB_Status_Compare/SWB_ChemicalStatus_Country?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '14.swChemical_by_Country.csv',
             'w+', newline='') as f:
@@ -1819,7 +2114,7 @@ def swChemical_by_Country_2016(conn, countryCode, cYear, working_directory):
             write.writerows(data)
 
 def gwSignificantImpactType2016(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_PressuresImpacts/GWB_Impacts?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_PressuresImpacts/GWB_Impacts?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '5.gwSignificantImpactType2016.csv',
             'w+', newline='') as f:
@@ -1895,7 +2190,7 @@ def gwSignificantImpactType2016(conn, countryCode, cYear, working_directory):
                 
 
 def gwSignificantImpactType_Other(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_PressuresImpacts/GWB_Impacts_Other?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_PressuresImpacts/GWB_Impacts_Other?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '5.gwSignificantImpactType_Other.csv',
             'w+', newline='') as f:
@@ -1918,7 +2213,7 @@ def gwSignificantImpactType_Other(conn, countryCode, cYear, working_directory):
 
 
 def SOW_GWB_gwSignificantPressureType_NumberOfImpact_by_country(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_PressuresImpacts/GWB_Pressures_Other?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_PressuresImpacts/GWB_Pressures_Other?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ['Country', 'Number of Impacts', 'Area (km^2)', 'Percent(%)']
     with open(
             working_directory + ''
@@ -1927,17 +2222,30 @@ def SOW_GWB_gwSignificantPressureType_NumberOfImpact_by_country(conn, countryCod
         write = csv.writer(f)
         write.writerow(headers)
         cur = conn.cursor()
-        for country in countryCode:
-            data = cur.execute('''SELECT NUTS0, C_ImpactDSet, C_NumberAreaD, round(C_NumberAreaDPercentPane * 100) 
-                            FROM GWB_ImpactsCount_Country_R_data 
-                               where NUTS0 = "''' + country + '''"
-                            GROUP BY NUTS0, C_ImpactDSet; '''
-                               ).fetchall()
+        country = ''.join(countryCode)
+        values = cur.execute('''select distinct gwSignificantPressureOther from SOW_GWB_gwSignificantPressureOther where cYear = ''' + str(cYear) + ''';''').fetchall()
 
-            write.writerows(data)
+        for temp in values:
+            data = ''.join(temp)
+            final = cur.execute('''SELECT countryCode,
+                           gwSignificantPressureOther,
+                           round(SUM(cArea) ),
+                           round(sum(cArea) * 100 / (
+                                                        SELECT round(sum(cArea) ) 
+                                                          FROM SOW_GWB_gwSignificantPressureOther
+                                                         WHERE countryCode = "''' + country + '''" AND 
+                                                               cYear = ''' + str(cYear) + '''
+                                                    )
+                           ) 
+                      FROM SOW_GWB_gwSignificantPressureOther
+                     WHERE countryCode = "''' + country + '''" AND 
+                           cYear = ''' + str(cYear) + ''' AND 
+                           gwSignificantPressureOther = "''' + data + '''";''').fetchall()
+
+            write.writerows(final)
 
 def gwSignificantPressureType2016(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_PressuresImpacts/GWB_Pressures?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_PressuresImpacts/GWB_Pressures?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ['Country', 'Significant Pressure Type Group', 'Significant Pressure Type', 'Area (km^2)', 'Area (%)']
     with open(
             working_directory + '5.gwSignificantPressureType2016.csv',
@@ -2018,7 +2326,7 @@ def gwSignificantPressureType2016(conn, countryCode, cYear, working_directory):
                     
 
 def gwSignificantPressureType_OtherTable2016(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_PressuresImpacts/GWB_Pressures_Other?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_PressuresImpacts/GWB_Pressures_Other?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     headers = ['Country', 'Year', 'Significant Pressure Other', 'Area (km^2)', 'Area(%)']
     with open(
             working_directory + ''
@@ -2042,7 +2350,7 @@ def gwSignificantPressureType_OtherTable2016(conn, countryCode, cYear, working_d
 
 
 def SOW_GWB_gwPollutant_Table(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_gwPollutant/GWB_gwPollutant?:isGuestRedirectFromVizportal=y&:embed=y
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_gwPollutant/GWB_gwPollutant?:isGuestRedirectFromVizportal=y&:embed=y
     with open(
             working_directory + '21.SOW_GWB_gwPollutant_Table2016.csv',
             'w+', newline='') as f:
@@ -2050,21 +2358,43 @@ def SOW_GWB_gwPollutant_Table(conn, countryCode, cYear, working_directory):
         write = csv.writer(f)
         write.writerow(header)
         cur = conn.cursor()
-        for country in countryCode:
-            data = cur.execute('''SELECT NUTS0,
-                           Pollutant,
-                           C_NumberAreaD,
-                           round(C_NumberAreaDPercentPane * 100) 
-                      FROM GWB_gwPollutant_B_data
-                     WHERE NUTS0 = ?
-                     GROUP BY NUTS0,
-                              Pollutant
-                        ORDER BY C_NumberAreaD DESC;''', (country,)).fetchall()
-            write.writerows(data)
+
+        country = ''.join(countryCode)
+
+        droptable = '''DROP TABLE IF EXISTS distinctvalues;'''
+
+        createtable = '''CREATE TEMPORARY TABLE IF NOT EXISTS distinctvalues AS SELECT DISTINCT countryCode,
+                                                                       euGroundWaterBodyCode,
+                                                                       cArea
+                                                                       from SOW_GWB_gwPollutant
+                                                                       where countryCode = "''' + country + '''" and
+                                                                       cYear = 2016 and
+                                                                       gwPollutantCausingFailure = "Yes";'''
+
+
+        data = '''SELECT countryCode,
+                           gwPollutantCode,
+                           round(sum(cArea) ),
+                           round(sum(cArea)  * 100 / (
+                                                          SELECT sum(cArea) 
+                                                          from distinctvalues
+                                                          
+                                                      ))
+                      FROM SOW_GWB_gwPollutant
+                     WHERE countryCode = "''' + country + '''" AND 
+                           cYear = 2016 AND 
+                           gwPollutantCausingFailure = "Yes"
+                     GROUP BY gwPollutantCode;'''
+
+        cur.execute(droptable)
+        cur.execute(createtable)
+        alldata = cur.execute(data).fetchall()
+
+        write.writerows(alldata)
             
 
 def SOW_GWB_gwPollutant_Table_Other(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_gwPollutantOther/WISE_SOW_gwPollutantOther?:isGuestRedirectFromVizportal=y&:embed=y
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_gwPollutantOther/WISE_SOW_gwPollutantOther?:isGuestRedirectFromVizportal=y&:embed=y
     with open(
             working_directory + '21.SOW_GWB_gwPollutant_Table' + str(cYear) + '_Other' + '.csv',
             'w+', newline='') as f:
@@ -2094,7 +2424,7 @@ def SOW_GWB_gwPollutant_Table_Other(conn, countryCode, cYear, working_directory)
 
 
 def swRiver_basin_specific_pollutants_reported_as_Other(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_FailingRBSPOther/SWB_FailingRBSPOther?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_FailingRBSPOther/SWB_FailingRBSPOther?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '40.Surface_water_bodies_River_basin_specific_pollutants_reported_as_Other2016.csv',
             'w+', newline='') as f:
@@ -2116,7 +2446,7 @@ def swRiver_basin_specific_pollutants_reported_as_Other(conn, countryCode, cYear
 
 
 def Ground_water_bodies_Failing_notUnknown_by_Country(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_GWB_Status_Maps/GWB_Status_NUTS0?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_GWB_Status_Maps/GWB_Status_NUTS0?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '23.Ground_water_bodies_Failing_notUnknown_by_Country2016.csv',
             'w+', newline='') as f:
@@ -2125,18 +2455,24 @@ def Ground_water_bodies_Failing_notUnknown_by_Country(conn, countryCode, cYear, 
         write.writerow(header)
         cur = conn.cursor()
         for country in countryCode:
-            data = cur.execute('''SELECT NUTS0, 
-                               C_StatusKnown, 
-                               C_StatusFailing, 
-                               round(C_StatusFailing * 100.0 / C_StatusKnown) 
-                          FROM gwNUTS0_Europe_data 
-                          where NUTS0 = "''' + country + '''"
-                         GROUP BY NUTS0 ''').fetchall()
+            data = cur.execute('''SELECT countryCode,
+                               round(sum(cArea) ),
+                               round(sum(cArea) * 100 / (
+                                                            SELECT sum(cArea) 
+                                                              FROM SOW_GWB_GroundWaterBody
+                                                             WHERE countryCode = "''' + country + '''" AND 
+                                                                   cYear = ''' + str(cYear) + '''
+                                                        )
+                               ,1 ) 
+                          FROM SOW_GWB_GroundWaterBody
+                         WHERE countryCode = "''' + country + '''" AND 
+                               cYear = ''' + str(cYear) + '''
+                         GROUP BY gwChemicalStatusValue;''').fetchall()
             write.writerows(data)
 
 
 def Ground_water_bodies_Failing_notUnknown_by_RBD(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_GWB_Status_Maps/GWB_Status_RBD?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_GWB_Status_Maps/GWB_Status_RBD?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '24.Ground_water_bodies_Failing_notUnknown_by_RBD2016.csv',
             'w+', newline='') as f:
@@ -2144,21 +2480,49 @@ def Ground_water_bodies_Failing_notUnknown_by_RBD(conn, countryCode, cYear, work
         write = csv.writer(f)
         write.writerow(header)
         cur = conn.cursor()
-        for country in countryCode:
-            data = cur.execute('''SELECT NUTS0, 
-                               euRBDCode, 
-                               rbdName, 
-                               C_StatusKnown, 
-                               C_StatusFailing, 
-                               round(C_StatusFailing * 100.0 / C_StatusKnown) 
-                          FROM gwRBD_EUROPE_DATA 
-                          where NUTS0 = "''' + country + '''"
-                         GROUP BY euRBDCode ''').fetchall()
+        country = ''.join(countryCode)
+
+        data = cur.execute('''SELECT DISTINCT euRBDCode
+                      FROM swRBD_Europe_data
+                     WHERE NUTS0 = "''' + country + '''";''').fetchall()
+
+        for temp in data:
+            values = ''.join(temp)
+            data = cur.execute('''SELECT DISTINCT gwb.countryCode,
+                                            gwb.euRBDCode,
+                                            rdbeudata.rbdName,
+                                            round(floor(sum(gwb.cArea) ) ),
+                                            (
+                                                SELECT round(floor(sum(cArea) ) ) 
+                                                  FROM SOW_GWB_GroundWaterBody
+                                                 WHERE countryCode = "''' + country + '''" AND 
+                                                       cYear = ''' + str(cYear) + ''' AND 
+                                                       (gwChemicalStatusValue = 3 OR 
+                                                        gwQuantitativeStatusValue = 3) AND 
+                                                       euRBDCode = "''' + values + '''"
+                                            ),
+                                            round( (
+                                                       SELECT round(floor(sum(cArea) ) ) 
+                                                         FROM SOW_GWB_GroundWaterBody
+                                                        WHERE countryCode = "''' + country + '''" AND 
+                                                              cYear = ''' + str(cYear) + ''' AND 
+                                                              (gwChemicalStatusValue = 3 OR 
+                                                               gwQuantitativeStatusValue = 3) AND 
+                                                              euRBDCode = "''' + values + '''"
+                                                   )
+                            *                      100 / round(floor(sum(gwb.cArea) ) ) ) 
+                              FROM SOW_GWB_GroundWaterBody AS gwb
+                                   JOIN
+                                   swRBD_Europe_data AS rdbeudata ON rdbeudata.euRBDCode = gwb.euRBDCode
+                             WHERE gwb.countryCode = "''' + country + '''" AND 
+                                   gwb.cYear = ''' + str(cYear) + ''' AND 
+                                   gwb.gwChemicalStatusValue <> "unknown" AND 
+                                   gwb.euRBDCode = "''' + values + '''";''').fetchall()
             write.writerows(data)
 
 
 def Surface_water_bodies_Failing_notUnknown_by_Country(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_GWB_Status_Maps/GWB_Status_NUTS0?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_GWB_Status_Maps/GWB_Status_NUTS0?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '16.Surface_water_bodies_Failing_notUnknown_by_Country2016.csv',
             'w+', newline='') as f:
@@ -2167,18 +2531,24 @@ def Surface_water_bodies_Failing_notUnknown_by_Country(conn, countryCode, cYear,
         write.writerow(header)
         cur = conn.cursor()
         for country in countryCode:
-            data = cur.execute('''SELECT NUTS0, 
-                               C_StatusKnown, 
-                               C_StatusFailing, 
-                               round(C_StatusFailing * 100.0 / C_StatusKnown) 
-                          FROM swNUTS0_Europe_data
-                          where NUTS0 = "''' + country + '''" 
-                         GROUP BY NUTS0 ''').fetchall()
+            data = cur.execute('''SELECT countryCode,
+                               round(sum(cArea) ),
+                               round(sum(cArea) * 100 / (
+                                                            SELECT sum(cArea) 
+                                                              FROM SOW_SWB_SurfaceWaterBody
+                                                             WHERE countryCode = "''' + country + '''" AND 
+                                                                   cYear = ''' + str(cYear) + '''
+                                                        )
+                               ,1 ) 
+                          FROM SOW_SWB_SurfaceWaterBody
+                         WHERE countryCode = "''' + country + '''" AND 
+                               cYear = ''' + str(cYear) + '''
+                         GROUP BY swChemicalStatusValue;''').fetchall()
             write.writerows(data)
 
 
 def Surface_water_bodies_QE1_Biological_quality_elements_assessment(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_qeMonitoringResults/SWB_qeMonitoringResults?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SWB_qeMonitoringResults/SWB_qeMonitoringResults?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '42.Surface_water_bodies_QE1_Biological_quality_elements_assessment2016.csv',
             'w+', newline='') as f:
@@ -2220,7 +2590,7 @@ def Surface_water_bodies_QE1_Biological_quality_elements_assessment(conn, countr
 
 
 def Surface_water_bodies_QE2_assessment(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_qeMonitoringResults/SWB_qeMonitoringResults?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SWB_qeMonitoringResults/SWB_qeMonitoringResults?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '42.Surface_water_bodies_QE2_assessment2016.csv',
             'w+', newline='') as f:
@@ -2263,7 +2633,7 @@ def Surface_water_bodies_QE2_assessment(conn, countryCode, cYear, working_direct
 
 
 def Surface_water_bodies_QE3_assessment(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_qeMonitoringResults/SWB_qeMonitoringResults?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SWB_qeMonitoringResults/SWB_qeMonitoringResults?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '42.Surface_water_bodies_QE3_assessment2016.csv',
             'w+', newline='') as f:
@@ -2305,7 +2675,7 @@ def Surface_water_bodies_QE3_assessment(conn, countryCode, cYear, working_direct
 
 
 def Surface_water_bodies_QE3_3_assessment(conn, countryCode, cYear, working_directory):
-    # https://tableau.discomap.eea.europa.eu/t/Wateronline/views/WISE_SOW_SWB_qeMonitoringResults/SWB_qeMonitoringResults?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
+    # https://tableau-public.discomap.eea.europa.eu/views/WISE_SOW_SWB_qeMonitoringResults/SWB_qeMonitoringResults?:embed=y&:showShareOptions=true&:display_count=no&:showVizHome=no
     with open(
             working_directory + '42.Surface_water_bodies_QE3_3_assessment2016.csv',
             'w+', newline='') as f:
