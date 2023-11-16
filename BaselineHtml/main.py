@@ -62,7 +62,7 @@ graphs = {
     '20.GroundWaterBodyCategoryChemical_status2016.csv': eeafunctions._20_GroundWaterBodyCategoryChemical_status2016,
     '21.SOW_GWB_gwPollutant_Table2016.csv': eeafunctions._21_SOW_GWB_gwPollutant_Table2016,
     '21.SOW_GWB_gwPollutant_Table2016_Other.csv': eeafunctions._21_SOW_GWB_gwPollutant_Table2016_Other,
-    '20.GroundWaterBodyCategoryChemical_status2016.csv': eeafunctions._22_GroundWaterBodyCategoryChemical_status2016,
+    '22.gwChemicalStatusValue_Percent_Country_2016.csv': eeafunctions._22_GroundWaterBodyCategoryChemical_status2016,
     '22.gwQuantitativeStatusValue_Percent_Country_2016.csv': eeafunctions._22_gwQuantitativeStatusValue_Percent_Country_2016,
     '23.Ground_water_bodies_Failing_notUnknown_by_Country2016.csv': eeafunctions._23_Ground_water_bodies_Failing_notUnknown_by_Country2016,
     '24.Ground_water_bodies_Failing_notUnknown_by_RBD2016.csv': eeafunctions._24_Ground_water_bodies_Failing_notUnknown_by_RBD2016,
@@ -76,7 +76,6 @@ graphs = {
     '32.gwChemicalStatusExpectedAchievementDate2016.csv': eeafunctions._32_gwChemicalStatusExpectedAchievementDate2016,
     '35.gwQuantitativeAssessmentConfidence2016.csv': eeafunctions._35_gwQuantitativeAssessmentConfidence2016,
     '36.gwChemicalAssessmentConfidence2016.csv': eeafunctions._36_gwChemicalAssessmentConfidence2016,
-    '37.Number_of_groundwater_bodies_failing_to_achieve_good_status.csv': eeafunctions._37_Number_of_groundwater_bodies_failing_to_achieve_good_status,
     '38.GWB_geologicalFormation2016.csv': eeafunctions._38_GWB_geologicalFormation2016,
     '39.swb_Chemical_assessment_using_monitoring_grouping_or_expert_judgement2016.csv': eeafunctions._39_swb_Chemical_assessment_using_monitoring_grouping_or_expert_judgement2016,
     '40.swRBsPollutants.csv': eeafunctions._40_swRBsPollutants,
@@ -88,7 +87,8 @@ graphs = {
     '44.swEcologicalStatusOrPotentialExpectedGoodIn2015.csv': eeafunctions._44_swEcologicalStatusOrPotentialExpectedGoodIn2015,
     '45.swEcologicalStatusOrPotentialExpectedAchievementDate2016.csv': eeafunctions._45_swEcologicalStatusOrPotentialExpectedAchievementDate2016,
     '46.swChemicalStatusExpectedGoodIn2015.csv': eeafunctions._46_swChemicalStatusExpectedGoodIn2015,
-    '47.swChemicalStatusExpectedAchievementDate2016.csv': eeafunctions._47_swChemicalStatusExpectedAchievementDate2016
+    '47.swChemicalStatusExpectedAchievementDate2016.csv': eeafunctions._47_swChemicalStatusExpectedAchievementDate2016,
+    '37.Number_of_groundwater_bodies_failing_to_achieve_good_status.csv': eeafunctions._37_Number_of_groundwater_bodies_failing_to_achieve_good_status,
 }
 
 

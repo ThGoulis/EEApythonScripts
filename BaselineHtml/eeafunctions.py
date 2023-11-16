@@ -1,9 +1,5 @@
 import matplotlib.pyplot as plt
-import os
 
-
-
-imagepath = 'C:\\Users\\Theofilos Goulis\\Documents\\BaselineAllData\\AT\\output\\'
 
 def rbdCodeNames(df, country, outfile, imagepath):
     html_string = '''<h3>RBD Code and names </h3>'''
@@ -640,9 +636,7 @@ def _18_GroundWaterBodyCategoryQuantitative_status2016(df, country, outfile, ima
 
 
 def _20_GroundWaterBodyCategoryChemical_status2016(df, country, outfile, imagepath):
-    df.dropna()
-    html_string = '''<h3>16. Groundwater bodies chemical status</h3>
-    '''
+    html_string = '''<h3>16. Groundwater bodies chemical status</h3>'''
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
         html_string += temp.to_html(index=False)
@@ -1234,7 +1228,6 @@ def _37_Number_of_groundwater_bodies_failing_to_achieve_good_status(df, country,
     if not df.loc[(df['Country'] == country)].empty:
         temp = df.loc[(df['Country'] == country)]
         html_string += temp.to_html(index=False)
-        print(temp)
         temp[['Country', 'Good', 'Failing']].plot.bar(x='Country', y=['Good', 'Failing'], rot=0)
         plt.title('Groundwater bodies\nNumber')
         plt.xlabel('')
