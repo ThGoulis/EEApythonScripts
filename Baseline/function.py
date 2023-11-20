@@ -775,7 +775,7 @@ def Surface_water_bodies_Failing_notUnknown_by_RBD2016(conn, countryCode, cYear,
         cur = conn.cursor()
         for country in countryCode:
             data = cur.execute('''select NUTS0, rbdName, C_StatusKnown, C_StatusFailing, 
-                            C_StatusFailingPercent * 100 
+                            C_StatusFailingPercent
                             from swRBD_Europe_data
                             where NUTS0 = "''' + country + '''" 
                             group by NUTS0, rbdName; ''').fetchall()
