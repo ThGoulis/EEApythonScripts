@@ -56,8 +56,8 @@ python script.py <db> <country> <outputdir>
 ```
 
 - `db`: Path to the SQLite database file.
-country: Country code (e.g., 'DE' for Germany).
-outputdir: Output directory for the CSV files.
+- `country`: Country code (e.g., 'DE' for Germany).
+- `outputdir`: Output directory for the CSV files.
 ### Example
 bash
 Copy code
