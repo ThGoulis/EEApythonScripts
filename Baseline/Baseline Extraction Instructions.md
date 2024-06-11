@@ -32,7 +32,7 @@ This script extracts information from the WISE database and generates reports pe
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/ThGoulis/wise-database-report-generator.git
+    git clone [https://github.com/ThGoulis/wise-database-report-generator.git](https://github.com/ThGoulis/EEApythonScripts)
     ```
 2. Navigate to the project directory:
     ```bash
